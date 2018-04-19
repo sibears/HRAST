@@ -15,6 +15,12 @@ class SavedVar(object):
         self.typ = typ
         self.mba = mba
 
+class SavedMemRef(object):
+
+    def __init__(self, ea, offset):
+        self.ea = ea
+        self.offset = offset
+
 class Matcher(object):
 
     def __init__(self, fcn, pattern):
@@ -25,6 +31,7 @@ class Matcher(object):
         self.cnt = None   
         self.ctx = {}
         self.obj = {}
+        self.memref = {}
         self.chain = False
         self.fcn = fcn
 
@@ -65,6 +72,12 @@ class Matcher(object):
 
     def save_obj(self, key, ea, type):
         self.obj[key] = SavedObj(type, ea)
+
+    def save_memref(self, key, ea, offset):
+        self.memref[key] = SavedMemRef(ea, offset)
+
+    def get_memref(self, key):
+        return self.memref[key]
 
     def get_obj(self, key):
         return self.obj[key]

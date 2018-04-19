@@ -16,6 +16,19 @@ class VarPattern(UnaryExpr):
     def check(self, expr, ctx):
         return expr.opname == "var" and super(VarPattern, self).check(expr.v, ctx)
 
+class MemRefGlobalBind(Pattern):
+
+    def __init__(self, name):
+        super(MemRefGlobalBind, self).__init__()
+        self.name = name
+
+    def check(self, expr, ctx):
+        if expr.opname == "memref":
+            print "yay"
+            if expr.x.opname == "obj":
+                ctx.save_memref(self.name, expr.x.obj_ea, expr.m)
+                return True
+        return False
 
 class VarBind(UnaryExpr):
 
@@ -127,7 +140,7 @@ TWO_OP = [('Asgn','asg'), ('Idx','idx'), ('Sub','sub'), ('Mul', 'mul'),
           ('Ule','ule'), ('Ugt','ugt'), ('Uge','uge'), ('Sle','sle'), ('Slt','slt'),
           ('Sgt','sgt'), ('Sge','sge'), ('Eq','eq'), ('Comma','comma'), ('Sshr','sshr'),
           ('Ushr', 'ushr'), ('Bor','bor'), ('AsgUShr','asgushr'), ('Smod','smod'),
-          ('Xor','xor'), ('AsgAdd','asgadd'), ('AsgSub', 'asgsub'), ('BAnd','band')]
+          ('Xor','xor'), ('AsgAdd','asgadd'), ('AsgSub', 'asgsub'), ('BAnd','band'), ('AsgBor', 'asgbor')]
 
 def BinaryGen(name, opname, BaseClass = BinaryExpr):
     def check(self, expr, ctx):

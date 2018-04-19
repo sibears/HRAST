@@ -43,7 +43,7 @@ def replacer_strlen_global(idx, ctx):
     del insn
 
 #Third arg - is chain
-PATTERNS = [(strlen_global, replacer_strlen_global, True)]
+#PATTERNS = [(strlen_global, replacer_strlen_global, True)]
 get_proc_addr = """ExprPattern(
     AsgnPattern(
         ObjBind("fcnPtr"),
@@ -55,7 +55,7 @@ get_proc_addr = """ExprPattern(
         )
     )
 )
-""".format(0/0) # 0/0 - addr of getProcAddr
+""".format(3) # 0/0 - addr of getProcAddr
 
 def getProc_addr(idx, ctx):
     import ida_bytes
@@ -67,4 +67,33 @@ def getProc_addr(idx, ctx):
 
 
 
-PATTERNS = [(get_proc_addr, getProc_addr, False)]
+#PATTERNS = [(get_proc_addr, getProc_addr, False)]
+global_struct_fields_sub = """
+ExprPattern(
+    AsgnPattern(
+        MemRefGlobalBind('stroff'),
+        CastPattern(
+            ObjBind('fcn'),
+        )
+    )
+)"""
+
+def _f1(idx, ctx):
+    import idc
+    import ida_bytes
+    obj = ctx.get_memref('stroff')
+    print "%x" % obj.ea
+    ti = idaapi.opinfo_t()
+    f = idc.GetFlags(obj.ea)
+    if idaapi.get_opinfo(obj.ea, 0, f, ti):
+        print ("tid=%08x - %s" % (ti.tid, idaapi.get_struc_name(ti.tid)))
+    print "Offset: {}".format(obj.offset)
+    import ida_struct
+    obj2 = ctx.get_obj('fcn')
+    print "%x" % obj2.addr
+    name_str = ida_name.get_name(obj2.addr)
+    print "Name {}".format(name_str)
+    ida_struct.set_member_name(ida_struct.get_struc(ti.tid), obj.offset, name_str)
+
+
+PATTERNS = [(global_struct_fields_sub, _f1, False)]

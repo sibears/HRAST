@@ -140,7 +140,7 @@ class FuncProcesser(object):
 
     TWO_OP = ['asg', 'idx', 'sub', 'mul', 'add' ,'land', 'lor', 'ult','ule','ugt',
               'uge', 'sle', 'slt', 'sgt', 'sge', 'eq', 'comma', 'sshr', 'ushr', 'bor', 
-              'asgushr', 'smod', 'xor', 'asgadd', 'asgsub', 'band', 'asgmul']
+              'asgushr', 'smod', 'xor', 'asgadd', 'asgsub', 'band', 'asgmul', 'asgbor']
 
     ONE_OP = ['preinc', 'predec', 'ne', 'lnot', 'ref','bnot','postinc','postdec']
 
