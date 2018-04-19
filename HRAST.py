@@ -67,7 +67,7 @@ def reLOAD():
     used_pats = []
     for i in ready_patterns.PATTERNS:
         print i[0]
-        used_pats.append((eval(i[0], globals(), locals()), i[1]))
+        used_pats.append((eval(i[0], globals(), locals()), i[1], i[2]))
 
 def hexrays_events_callback_m(*args):
     global LEV
@@ -84,7 +84,7 @@ def hexrays_events_callback_m(*args):
                 fcnProc = FuncProcesser(fcn)
                 matcher = Matcher(fcnProc.fcn, None)
                 matcher.set_pattern(i[0])
-                matcher.chain = True
+                matcher.chain = i[2]
                 matcher.replacer = i[1]
                 fcnProc.pattern = matcher
                 fcnProc.DEBUG = True

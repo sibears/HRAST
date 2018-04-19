@@ -42,6 +42,29 @@ def replacer_strlen_global(idx, ctx):
     #del original inst because we swapped them on previous line
     del insn
 
+#Third arg - is chain
+PATTERNS = [(strlen_global, replacer_strlen_global, True)]
+get_proc_addr = """ExprPattern(
+    AsgnPattern(
+        ObjBind("fcnPtr"),
+        CastPattern(
+            CallExpr(
+                ObjConcrete(0x{:x}),
+                [AnyPattern(), ObjBind("fcnName")]
+            )
+        )
+    )
+)
+""".format(0/0) # 0/0 - addr of getProcAddr
 
-PATTERNS = [(strlen_global, replacer_strlen_global)]
-#PATTERNS = []
+def getProc_addr(idx, ctx):
+    import ida_bytes
+    obj = ctx.get_obj("fcnPtr")
+    print "%x" % obj.addr
+    name = ctx.get_obj("fcnName")
+    name_str = ida_bytes.get_strlit_contents(name.addr, -1, -1)
+    ida_name.set_name(obj.addr, name_str)
+
+
+
+PATTERNS = [(get_proc_addr, getProc_addr, False)]

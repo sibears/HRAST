@@ -48,6 +48,45 @@ class ObjBind(UnaryExpr):
                 return True
         return False
 
+class CallExpr(Pattern):
+
+    def __init__(self, fcn, args):
+        super(CallExpr, self).__init__()
+        self.fcn = fcn
+        self.args = args
+
+    def check(self, expr, ctx):
+        if expr.opname == "call" and self.fcn.check(expr.x, ctx):
+            res = True
+            ln = len(self.args)
+            idx = 0
+            for i in expr.a:
+                print "Checking arg {} {}".format(idx, res)
+                if idx >= ln:
+                    return False
+                res = res and self.args[idx].check(i, ctx)
+                idx += 1
+            print "Returning {}".format(res)
+            return res
+        return False
+    
+
+class ObjConcrete(Pattern):
+
+    def __init__(self, addr):
+        super(ObjConcrete, self).__init__()
+        self.addr = addr
+
+    def check(self, expr, ctx):
+        if expr.opname == "obj":
+            print "checking"
+            print "{:x}".format(expr.obj_ea)
+            print "{:x}".format(self.addr)
+            if expr.obj_ea == self.addr:
+                print "ex"
+                return True
+        return False
+
 class NumberConcrete(Pattern):
 
     def __init__(self, num):
@@ -67,6 +106,21 @@ class NumberPattern(UnaryExpr):
             return super(NumberPattern, self).check(expr.n, ctx)
         return False
 
+class CastPattern(Pattern):
+
+    def __init__(self, inner, cast_type=None):
+        super(CastPattern, self).__init__()
+        self.cast_type = cast_type
+        self.inner = inner
+
+    def check(self, expr, ctx):
+        if expr.opname == "cast":
+            if self.cast_type is not None and expr.type.dstr() != self.cast_type:
+                return False
+            res = self.inner.check(expr.x, ctx)
+            print "Cast check ret {}".format(res)
+            return res
+        return False
 
 TWO_OP = [('Asgn','asg'), ('Idx','idx'), ('Sub','sub'), ('Mul', 'mul'),
           ('Add','add'), ('Land','land'), ('Lor','lor'), ('Ult','ult'),
