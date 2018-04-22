@@ -27,7 +27,7 @@ strlen_global = """ChainPattern([
 
 def replacer_strlen_global(idx, ctx):
     var = ctx.get_var("res")
-    varname = ctx.get_name(var.idx)
+    varname = ctx.ctx.get_name(var.idx)
     obj = ctx.get_obj("strlenarg")
 
     varexp = make_var_expr(var.idx, var.typ, var.mba)
@@ -55,7 +55,7 @@ get_proc_addr = """ExprPattern(
         )
     )
 )
-""".format(3) # 0/0 - addr of getProcAddr
+""".format(0x3) # 0x3 - replace by addr of getProcAddr
 
 def getProc_addr(idx, ctx):
     import ida_bytes

@@ -26,8 +26,11 @@ class MemRefGlobalBind(Pattern):
         if expr.opname == "memref":
             print "yay"
             if expr.x.opname == "obj":
-                ctx.save_memref(self.name, expr.x.obj_ea, expr.m)
-                return True
+                if ctx.ctx.has_memref(self.name):
+                    return ctx.ctx.get_memref(self.name).idx == expr.v.idx
+                else:
+                    ctx.ctx.save_memref(self.name, expr.x.obj_ea, expr.m)
+                    return True
         return False
 
 class VarBind(UnaryExpr):
@@ -39,10 +42,10 @@ class VarBind(UnaryExpr):
     def check(self, expr, ctx):
         #print "Checking binded"
         if expr.opname == "var":
-            if ctx.has_var(self.name):
-                return ctx.get_var(self.name).idx == expr.v.idx
+            if ctx.ctx.has_var(self.name):
+                return ctx.ctx.get_var(self.name).idx == expr.v.idx
             else:
-                ctx.save_var(self.name, expr.v.idx, expr.type, expr.v.mba)
+                ctx.ctx.save_var(self.name, expr.v.idx, expr.type, expr.v.mba)
                 return True
         return False
 
@@ -54,10 +57,10 @@ class ObjBind(UnaryExpr):
 
     def check(self, expr, ctx):
         if expr.opname == "obj":
-            if ctx.has_obj(self.name):
-                return ctx.get_obj(self.name).addr == expr.obj_ea
+            if ctx.ctx.has_obj(self.name):
+                return ctx.ctx.get_obj(self.name).addr == expr.obj_ea
             else:
-                ctx.save_obj(self.name, expr.obj_ea, expr.type)
+                ctx.ctx.save_obj(self.name, expr.obj_ea, expr.type)
                 return True
         return False
 

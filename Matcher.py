@@ -21,6 +21,50 @@ class SavedMemRef(object):
         self.ea = ea
         self.offset = offset
 
+
+class SavedCTX(object):
+    """Class which holds all collected context"""
+    def __init__(self):
+        self.obj = {}
+        self.vars = {}
+        self.memref = {}
+
+
+    def save_obj(self, key, ea, type):
+        self.obj[key] = SavedObj(type, ea)
+
+    def save_memref(self, key, ea, offset):
+        self.memref[key] = SavedMemRef(ea, offset)
+
+    def save_var(self, idx, val, typ, mb):
+        #val is index in fcn.lvars
+        #print "[saving var]"
+        self.vars[idx] = SavedVar(val, typ, mb)
+
+    def has_var(self, idx):
+        return idx in self.vars
+        
+    def get_var(self, idx):
+        return self.vars[idx]
+
+    def get_memref(self, key):
+        return self.memref[key]
+
+    def get_obj(self, key):
+        return self.obj[key]
+
+    def has_obj(self, key):
+        return key in self.obj
+
+    def has_memref(self, key):
+        return key in self.memref
+
+    def clear_ctx(self):
+        self.obj = {}
+        self.vars = {}
+        self.memref = {}
+
+
 class Matcher(object):
 
     def __init__(self, fcn, pattern):
@@ -29,36 +73,21 @@ class Matcher(object):
         self.node = 0
         self.replacer = None    
         self.cnt = None   
-        self.ctx = {}
-        self.obj = {}
-        self.memref = {}
+        self.ctx = SavedCTX()
         self.chain = False
         self.fcn = fcn
 
     def set_pattern(self, patt):
         self.pattern = patt
 
-    def has_var(self, idx):
-        return idx in self.ctx
-        
-    def get_var(self, idx):
-        return self.ctx[idx]
-
-    def save_var(self, idx, val, typ, mb):
-        #val is index in fcn.lvars
-        #print "[saving var]"
-        self.ctx[idx] = SavedVar(val, typ, mb)
-
     def check(self, expr):
-        self.ctx = {}
-        self.obj = {}
+        self.ctx.clear_ctx
         return self.pattern.check(expr, self)
 
     def check_chain(self, node):
         ret = self.pattern.check(node, self)
         if ret is False:
-            self.ctx = {}
-            self.obj = {}
+            self.ctx.clear_ctx()
         else:
             if self.is_finished():
                 pass
@@ -67,21 +96,6 @@ class Matcher(object):
     def get_name(self, idx):
         return self.names[idx].name
     
-    def has_obj(self, key):
-        return key in self.obj
-
-    def save_obj(self, key, ea, type):
-        self.obj[key] = SavedObj(type, ea)
-
-    def save_memref(self, key, ea, offset):
-        self.memref[key] = SavedMemRef(ea, offset)
-
-    def get_memref(self, key):
-        return self.memref[key]
-
-    def get_obj(self, key):
-        return self.obj[key]
-
     def set_node(self, node):
         self.node = node
     
@@ -109,7 +123,7 @@ class Matcher(object):
         if self.replacer is not None:
             if not self.is_chain():
                 #we're replacing single instruction
-                self.replacer(self.node, self)
+                self.replacer(self.node, self.ctx)
             else:
                 #we're replacing chain
                 size = len(self.blk.cblock)
@@ -127,5 +141,5 @@ class Matcher(object):
                     #del inst
                     idx -= 1
                     cnt -= 1
-                self.replacer(self.blk.cblock.at(idx), self)
+                self.replacer(self.blk.cblock.at(idx), self.ctx)
         self.ctx = {}
