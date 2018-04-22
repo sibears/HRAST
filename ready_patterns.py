@@ -27,7 +27,7 @@ strlen_global = """ChainPattern([
 
 def replacer_strlen_global(idx, ctx):
     var = ctx.get_var("res")
-    varname = ctx.ctx.get_name(var.idx)
+    varname = ctx.get_var_name(var.idx)
     obj = ctx.get_obj("strlenarg")
 
     varexp = make_var_expr(var.idx, var.typ, var.mba)
@@ -43,7 +43,7 @@ def replacer_strlen_global(idx, ctx):
     del insn
 
 #Third arg - is chain
-#PATTERNS = [(strlen_global, replacer_strlen_global, True)]
+PATTERNS = [(strlen_global, replacer_strlen_global, True)]
 get_proc_addr = """ExprPattern(
     AsgnPattern(
         ObjBind("fcnPtr"),
@@ -96,4 +96,4 @@ def _f1(idx, ctx):
     ida_struct.set_member_name(ida_struct.get_struc(ti.tid), obj.offset, name_str)
 
 
-PATTERNS = [(global_struct_fields_sub, _f1, False)]
+#PATTERNS = [(global_struct_fields_sub, _f1, False)]

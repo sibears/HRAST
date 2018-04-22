@@ -103,7 +103,6 @@ class FuncProcesser(object):
             self.need_reanalyze_cblock = False
         if self.pattern is not None:
             if self.pattern.is_chain():
-                print "[chech chain]"
                 if self.pattern.check_chain(node):
                     #TODO: possible inner hiding?
                     if self.pattern.is_finished():

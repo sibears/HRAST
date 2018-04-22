@@ -59,6 +59,7 @@ LEV = 0
 NAME = 'log'
 
 used_pats = []
+DEBUG = True
 
 def reLOAD():
     global used_pats
@@ -68,6 +69,14 @@ def reLOAD():
     for i in ready_patterns.PATTERNS:
         print i[0]
         used_pats.append((eval(i[0], globals(), locals()), i[1], i[2]))
+
+def unLOAD():
+    global used_pats
+    used_pats = []
+
+def deBUG():
+    global DEBUG
+    DEBUG = not DEBUG
 
 def hexrays_events_callback_m(*args):
     global LEV
@@ -79,7 +88,6 @@ def hexrays_events_callback_m(*args):
         level = args[2]
         #print "Got level {}".format(CMAT_LEVEL[level])
         if level == idaapi.CMAT_FINAL:
-            print used_pats
             for i in used_pats:
                 fcnProc = FuncProcesser(fcn)
                 matcher = Matcher(fcnProc.fcn, None)
@@ -87,7 +95,7 @@ def hexrays_events_callback_m(*args):
                 matcher.chain = i[2]
                 matcher.replacer = i[1]
                 fcnProc.pattern = matcher
-                fcnProc.DEBUG = True
+                fcnProc.DEBUG = DEBUG
                 fcnProc.traverse_function()
     return 0
 

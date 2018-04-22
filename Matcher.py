@@ -24,7 +24,8 @@ class SavedMemRef(object):
 
 class SavedCTX(object):
     """Class which holds all collected context"""
-    def __init__(self):
+    def __init__(self, fcn):
+        self.names = fcn.lvars
         self.obj = {}
         self.vars = {}
         self.memref = {}
@@ -38,8 +39,11 @@ class SavedCTX(object):
 
     def save_var(self, idx, val, typ, mb):
         #val is index in fcn.lvars
-        #print "[saving var]"
         self.vars[idx] = SavedVar(val, typ, mb)
+
+
+    def get_var_name(self, idx):
+        return self.names[idx].name
 
     def has_var(self, idx):
         return idx in self.vars
@@ -68,12 +72,12 @@ class SavedCTX(object):
 class Matcher(object):
 
     def __init__(self, fcn, pattern):
-        self.names = fcn.lvars
+
         self.pattern = pattern 
         self.node = 0
         self.replacer = None    
         self.cnt = None   
-        self.ctx = SavedCTX()
+        self.ctx = SavedCTX(fcn)
         self.chain = False
         self.fcn = fcn
 
@@ -81,7 +85,7 @@ class Matcher(object):
         self.pattern = patt
 
     def check(self, expr):
-        self.ctx.clear_ctx
+        self.ctx.clear_ctx()
         return self.pattern.check(expr, self)
 
     def check_chain(self, node):
@@ -92,9 +96,6 @@ class Matcher(object):
             if self.is_finished():
                 pass
         return ret
-
-    def get_name(self, idx):
-        return self.names[idx].name
     
     def set_node(self, node):
         self.node = node
@@ -142,4 +143,4 @@ class Matcher(object):
                     idx -= 1
                     cnt -= 1
                 self.replacer(self.blk.cblock.at(idx), self.ctx)
-        self.ctx = {}
+        self.ctx.clear_ctx()

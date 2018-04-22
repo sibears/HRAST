@@ -24,7 +24,6 @@ class MemRefGlobalBind(Pattern):
 
     def check(self, expr, ctx):
         if expr.opname == "memref":
-            print "yay"
             if expr.x.opname == "obj":
                 if ctx.ctx.has_memref(self.name):
                     return ctx.ctx.get_memref(self.name).idx == expr.v.idx
@@ -40,7 +39,6 @@ class VarBind(UnaryExpr):
         self.name = name
 
     def check(self, expr, ctx):
-        #print "Checking binded"
         if expr.opname == "var":
             if ctx.ctx.has_var(self.name):
                 return ctx.ctx.get_var(self.name).idx == expr.v.idx
@@ -77,12 +75,10 @@ class CallExpr(Pattern):
             ln = len(self.args)
             idx = 0
             for i in expr.a:
-                print "Checking arg {} {}".format(idx, res)
                 if idx >= ln:
                     return False
                 res = res and self.args[idx].check(i, ctx)
                 idx += 1
-            print "Returning {}".format(res)
             return res
         return False
     
@@ -95,11 +91,9 @@ class ObjConcrete(Pattern):
 
     def check(self, expr, ctx):
         if expr.opname == "obj":
-            print "checking"
             print "{:x}".format(expr.obj_ea)
             print "{:x}".format(self.addr)
             if expr.obj_ea == self.addr:
-                print "ex"
                 return True
         return False
 
