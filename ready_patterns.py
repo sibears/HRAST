@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from ast_helper import *
 import idaapi
 import ida_name
@@ -25,13 +27,14 @@ strlen_global = """ChainPattern([
     ExprPattern(AsgnPattern(VarBind("res"), AnyPattern()))
 ])"""
 
+
 def replacer_strlen_global(idx, ctx):
     var = ctx.get_var("res")
     varname = ctx.get_var_name(var.idx)
     obj = ctx.get_obj("strlenarg")
 
     varexp = make_var_expr(var.idx, var.typ, var.mba)
-    arg1 = make_obj_expr(obj.addr, obj.type, arg = True)
+    arg1 = make_obj_expr(obj.addr, obj.type, arg=True)
     arglist = ida_hexrays.carglist_t()
     arglist.push_back(arg1)
     val = ida_hexrays.call_helper(ida_hexrays.dummy_ptrtype(4, False), arglist, "strlen_inlined")
@@ -39,10 +42,11 @@ def replacer_strlen_global(idx, ctx):
 
     idx.cleanup()
     idaapi.qswap(idx, insn)
-    #del original inst because we swapped them on previous line
+    # del original inst because we swapped them on previous line
     del insn
 
-#Third arg - is chain
+
+# Third arg - is chain
 PATTERNS = [(strlen_global, replacer_strlen_global, True)]
 get_proc_addr = """ExprPattern(
     AsgnPattern(
@@ -55,7 +59,8 @@ get_proc_addr = """ExprPattern(
         )
     )
 )
-""".format(0x3) # 0x3 - replace by addr of getProcAddr
+""".format(0x3)  # 0x3 - replace by addr of getProcAddr
+
 
 def getProc_addr(idx, ctx):
     import ida_bytes
@@ -66,8 +71,7 @@ def getProc_addr(idx, ctx):
     ida_name.set_name(obj.addr, name_str)
 
 
-
-#PATTERNS = [(get_proc_addr, getProc_addr, False)]
+# PATTERNS = [(get_proc_addr, getProc_addr, False)]
 global_struct_fields_sub = """
 ExprPattern(
     AsgnPattern(
@@ -78,6 +82,7 @@ ExprPattern(
     )
 )"""
 
+
 def _f1(idx, ctx):
     import idc
     import ida_bytes
@@ -86,7 +91,7 @@ def _f1(idx, ctx):
     ti = idaapi.opinfo_t()
     f = idc.GetFlags(obj.ea)
     if idaapi.get_opinfo(obj.ea, 0, f, ti):
-        print ("tid=%08x - %s" % (ti.tid, idaapi.get_struc_name(ti.tid)))
+        print("tid=%08x - %s" % (ti.tid, idaapi.get_struc_name(ti.tid)))
     print "Offset: {}".format(obj.offset)
     import ida_struct
     obj2 = ctx.get_obj('fcn')
@@ -95,5 +100,4 @@ def _f1(idx, ctx):
     print "Name {}".format(name_str)
     ida_struct.set_member_name(ida_struct.get_struc(ti.tid), obj.offset, name_str)
 
-
-#PATTERNS = [(global_struct_fields_sub, _f1, False)]
+# PATTERNS = [(global_struct_fields_sub, _f1, False)]

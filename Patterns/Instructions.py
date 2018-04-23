@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
+
 from Pattern import *
+
 
 class IfPattern(object):
 
@@ -20,10 +23,12 @@ class IfPattern(object):
                     return insn.cif.ielse is None
         return False
 
+
 class EmptyPattern(object):
 
     def check(self, insn, ctx):
         return insn.opname == "empty"
+
 
 class BlockPattern(object):
 
@@ -40,7 +45,6 @@ class BlockPattern(object):
                     break
             return same
         return False
-
 
     def check(self, inst, ctx):
         if inst.opname != "block":
@@ -70,9 +74,10 @@ class BlockPattern(object):
                     return True
                 else:
                     return False
-            
+
             currpat = self.nodes[pospat]
             pos += 1
+
 
 class SwitchPattern(object):
 
@@ -82,9 +87,10 @@ class SwitchPattern(object):
 
     def check(self, insn, ctx):
         if insn.opname == "switch" and self.expr.check(insn.cswitch.expr, ctx):
-            #TODO: add properly checking of cases
+            # TODO: add properly checking of cases
             return True
         return False
+
 
 class WhilePattern(object):
 
@@ -97,6 +103,7 @@ class WhilePattern(object):
             return self.body.check(insn.cwhile.body, ctx)
         return False
 
+
 class DoPattern(object):
     def __init__(self, cond, body):
         self.cond = cond
@@ -107,6 +114,7 @@ class DoPattern(object):
             return self.body.check(insn.cdo.body, ctx)
         return False
 
+
 class ExprPattern(object):
 
     def __init__(self, exp):
@@ -114,6 +122,7 @@ class ExprPattern(object):
 
     def check(self, expr, ctx):
         return expr.opname == "expr" and self.expr.check(expr.cexpr, ctx)
+
 
 class ForPattern(object):
 
