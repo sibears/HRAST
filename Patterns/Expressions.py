@@ -1,12 +1,18 @@
+# -*- coding: utf-8 -*-
+
+import sys
 from Pattern import *
+
 
 class VarName(Pattern):
 
     def __init__(self, name):
+        super(VarName, self).__init__()
         self.name = name
 
     def check(self, expr, ctx):
         return ctx.get_name(expr.idx) == self.name
+
 
 class VarPattern(UnaryExpr):
 
@@ -15,6 +21,7 @@ class VarPattern(UnaryExpr):
 
     def check(self, expr, ctx):
         return expr.opname == "var" and super(VarPattern, self).check(expr.v, ctx)
+
 
 class MemRefGlobalBind(Pattern):
 
@@ -32,6 +39,7 @@ class MemRefGlobalBind(Pattern):
                     return True
         return False
 
+
 class VarBind(UnaryExpr):
 
     def __init__(self, name):
@@ -47,6 +55,7 @@ class VarBind(UnaryExpr):
                 return True
         return False
 
+
 class ObjBind(UnaryExpr):
 
     def __init__(self, name):
@@ -61,6 +70,7 @@ class ObjBind(UnaryExpr):
                 ctx.ctx.save_obj(self.name, expr.obj_ea, expr.type)
                 return True
         return False
+
 
 class CallExpr(Pattern):
 
@@ -97,6 +107,7 @@ class ObjConcrete(Pattern):
                 return True
         return False
 
+
 class NumberConcrete(Pattern):
 
     def __init__(self, num):
@@ -105,6 +116,7 @@ class NumberConcrete(Pattern):
 
     def check(self, expr, ctx):
         return expr._value == self.val
+
 
 class NumberPattern(UnaryExpr):
 
@@ -115,6 +127,7 @@ class NumberPattern(UnaryExpr):
         if expr.opname == "num":
             return super(NumberPattern, self).check(expr.n, ctx)
         return False
+
 
 class CastPattern(Pattern):
 
@@ -132,32 +145,43 @@ class CastPattern(Pattern):
             return res
         return False
 
-TWO_OP = [('Asgn','asg'), ('Idx','idx'), ('Sub','sub'), ('Mul', 'mul'),
-          ('Add','add'), ('Land','land'), ('Lor','lor'), ('Ult','ult'),
-          ('Ule','ule'), ('Ugt','ugt'), ('Uge','uge'), ('Sle','sle'), ('Slt','slt'),
-          ('Sgt','sgt'), ('Sge','sge'), ('Eq','eq'), ('Comma','comma'), ('Sshr','sshr'),
-          ('Ushr', 'ushr'), ('Bor','bor'), ('AsgUShr','asgushr'), ('Smod','smod'),
-          ('Xor','xor'), ('AsgAdd','asgadd'), ('AsgSub', 'asgsub'), ('BAnd','band'), ('AsgBor', 'asgbor')]
 
-def BinaryGen(name, opname, BaseClass = BinaryExpr):
+TWO_OP = [
+    ('Asgn', 'asg'), ('Idx', 'idx'), ('Sub', 'sub'), ('Mul', 'mul'),
+    ('Add', 'add'), ('Land', 'land'), ('Lor', 'lor'), ('Ult', 'ult'),
+    ('Ule', 'ule'), ('Ugt', 'ugt'), ('Uge', 'uge'), ('Sle', 'sle'), ('Slt', 'slt'),
+    ('Sgt', 'sgt'), ('Sge', 'sge'), ('Eq', 'eq'), ('Comma', 'comma'), ('Sshr', 'sshr'),
+    ('Ushr', 'ushr'), ('Bor', 'bor'), ('AsgUShr', 'asgushr'), ('Smod', 'smod'),
+    ('Xor', 'xor'), ('AsgAdd', 'asgadd'), ('AsgSub', 'asgsub'), ('BAnd', 'band'), ('AsgBor', 'asgbor'),
+]
+
+
+def BinaryGen(name, opname, BaseClass=BinaryExpr):
+
     def check(self, expr, ctx):
         return expr.opname == opname and super(type(self), self).check(expr, ctx)
-    newclass = type(name, (BaseClass,), {"check":check})
+
+    newclass = type(name, (BaseClass,), {"check": check})
     return newclass
 
 
-ONE_OP = [('Preinc','preinc'), ('Predec','predec'), ('Ne','ne'), ('Lnot','lnot'), 
-          ('Ref','ref'),('Bnot','bnot'),('Postinc','postinc'),('Postdec','postdec'), ('Ptr', 'ptr')]
+ONE_OP = [
+    ('Preinc', 'preinc'), ('Predec', 'predec'), ('Ne', 'ne'), ('Lnot', 'lnot'),
+    ('Ref', 'ref'), ('Bnot', 'bnot'), ('Postinc', 'postinc'), ('Postdec', 'postdec'), ('Ptr', 'ptr'),
+]
 
-def UnaryGen(name, opname, BaseClass = UnaryExpr):
+
+def UnaryGen(name, opname, BaseClass=UnaryExpr):
+
     def check(self, expr, ctx):
         return expr.opname == opname and super(type(self), self).check(expr.x, ctx)
-    newclass = type(name, (BaseClass,), {"check":check})
+
+    newclass = type(name, (BaseClass,), {"check": check})
     return newclass
 
-import sys
+
 module = sys.modules[__name__]
 for i in TWO_OP:
-    setattr(module, i[0]+"Pattern", BinaryGen(i[0]+"Pattern", i[1]))
+    setattr(module, i[0] + "Pattern", BinaryGen(i[0] + "Pattern", i[1]))
 for i in ONE_OP:
-    setattr(module, i[0]+"Pattern", UnaryGen(i[0]+"Pattern", i[1]))
+    setattr(module, i[0] + "Pattern", UnaryGen(i[0] + "Pattern", i[1]))

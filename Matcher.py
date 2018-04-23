@@ -1,7 +1,10 @@
+# -*- coding: utf-8 -*-
+
 import idaapi
 idaapi.require("Patterns.__init__")
 idaapi.require("Patterns.Pattern")
 from Patterns.Pattern import *
+
 
 class SavedObj(object):
 
@@ -9,11 +12,14 @@ class SavedObj(object):
         self.addr = addr
         self.type = typ
 
+
 class SavedVar(object):
+
     def __init__(self, idx, typ, mba):
         self.idx = idx
         self.typ = typ
         self.mba = mba
+
 
 class SavedMemRef(object):
 
@@ -30,7 +36,6 @@ class SavedCTX(object):
         self.vars = {}
         self.memref = {}
 
-
     def save_obj(self, key, ea, type):
         self.obj[key] = SavedObj(type, ea)
 
@@ -38,9 +43,8 @@ class SavedCTX(object):
         self.memref[key] = SavedMemRef(ea, offset)
 
     def save_var(self, idx, val, typ, mb):
-        #val is index in fcn.lvars
+        # val is index in fcn.lvars
         self.vars[idx] = SavedVar(val, typ, mb)
-
 
     def get_var_name(self, idx):
         return self.names[idx].name
@@ -99,7 +103,7 @@ class Matcher(object):
     
     def set_node(self, node):
         self.node = node
-    
+
     def set_cblk_and_node(self, blk, node):
         self.blk = blk
         self.node = node
@@ -123,23 +127,23 @@ class Matcher(object):
         self.cnt = None
         if self.replacer is not None:
             if not self.is_chain():
-                #we're replacing single instruction
+                # we're replacing single instruction
                 self.replacer(self.node, self.ctx)
             else:
-                #we're replacing chain
+                # we're replacing chain
                 size = len(self.blk.cblock)
                 idx = None
-                #print self.node.opname
+                # print self.node.opname
                 for i in range(size):
-                    #print self.blk.cblock.at(i).opname
+                    # print self.blk.cblock.at(i).opname
                     if self.blk.cblock.at(i) == self.node:
                         idx = i
                         break
-                #idx = idx - cnt
+                # idx = idx - cnt
                 while cnt != 1:
                     self.blk.cblock.remove(self.blk.cblock.at(idx))
-                    #idaapi.qswap(self.blk.cblock.at(idx), inst)
-                    #del inst
+                    # idaapi.qswap(self.blk.cblock.at(idx), inst)
+                    # del inst
                     idx -= 1
                     cnt -= 1
                 self.replacer(self.blk.cblock.at(idx), self.ctx)
