@@ -3,7 +3,7 @@
 import idaapi
 idaapi.require("Patterns.__init__")
 idaapi.require("Patterns.Pattern")
-from Patterns.Pattern import *
+from Patterns.Patterns import *
 
 
 class SavedObj(object):

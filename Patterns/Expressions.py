@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from Pattern import *
+from Patterns import *
 
 
 class VarName(Pattern):
