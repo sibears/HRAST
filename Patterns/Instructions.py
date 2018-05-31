@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from Pattern import *
+from Patterns import *
 
 
 class IfPattern(object):

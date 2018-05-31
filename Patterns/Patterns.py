@@ -19,7 +19,7 @@ class AnyPattern(Pattern):
 class BinaryExpr(Pattern):
 
     def __init__(self, left, rigth, simmetric=False):
-        super(BinaryExpr, self).__init__()
+        #super(BinaryExpr, self).__init__()
         self.left = left
         self.rigth = rigth
         self.simmetric = simmetric
@@ -36,7 +36,7 @@ class BinaryExpr(Pattern):
 class UnaryExpr(Pattern):
 
     def __init__(self, operand):
-        super(UnaryExpr, self).__init__()
+        #super(UnaryExpr, self).__init__()
         self.op = operand
 
     def check(self, expr, ctx):

@@ -1,3 +1,3 @@
-from Patterns import *
+#from Patterns import *
 from Expressions import *
 from Instructions import *

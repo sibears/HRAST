@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import idaapi
-idaapi.require("Patterns.__init__")
-idaapi.require("Patterns.Pattern")
-from Patterns.Patterns import *
+#idaapi.require("Patterns.__init__")
+#idaapi.require("Patterns.Patterns")
 
 
 class SavedObj(object):

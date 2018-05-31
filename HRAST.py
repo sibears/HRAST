@@ -8,13 +8,15 @@ import idaapi
 idaapi.require("Patterns.__init__")
 idaapi.require("Patterns.Instructions")
 idaapi.require("Patterns.Expressions")
-idaapi.require("Patterns.Pattern")
+idaapi.require("Patterns.Patterns")
 idaapi.require("Matcher")
 idaapi.require("ast_helper")
+idaapi.require("traverse")
 from Matcher import *
 from ast_helper import *
 from Patterns.Instructions import *
 from Patterns.Expressions import *
+#from Patterns import *
 from traverse import *
 import ready_patterns
 
@@ -112,4 +114,6 @@ def hr_remove():
 
 if __name__ == "__main__":
     print "yay"
+    print ObjBind("www")
+    
     print idaapi.install_hexrays_callback(hexrays_events_callback_m)

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from Patterns import *
+import Patterns as p
 
 
-class VarName(Pattern):
+class VarName(p.Pattern):
 
     def __init__(self, name):
         super(VarName, self).__init__()
@@ -14,16 +14,16 @@ class VarName(Pattern):
         return ctx.get_name(expr.idx) == self.name
 
 
-class VarPattern(UnaryExpr):
+class VarPattern(p.UnaryExpr):
 
-    def __init__(self, name=AnyPattern()):
+    def __init__(self, name=p.AnyPattern()):
         super(VarPattern, self).__init__(name)
 
     def check(self, expr, ctx):
         return expr.opname == "var" and super(VarPattern, self).check(expr.v, ctx)
 
 
-class MemRefGlobalBind(Pattern):
+class MemRefGlobalBind(p.Pattern):
 
     def __init__(self, name):
         super(MemRefGlobalBind, self).__init__()
@@ -33,17 +33,33 @@ class MemRefGlobalBind(Pattern):
         if expr.opname == "memref":
             if expr.x.opname == "obj":
                 if ctx.ctx.has_memref(self.name):
-                    return ctx.ctx.get_memref(self.name).idx == expr.v.idx
+                    return ctx.ctx.get_memref(self.name).idx == expr.x.obj_ea
                 else:
                     ctx.ctx.save_memref(self.name, expr.x.obj_ea, expr.m)
                     return True
         return False
 
 
-class VarBind(UnaryExpr):
+class MemRefIdxGlobalBind(p.Pattern):
 
     def __init__(self, name):
-        super(VarBind, self).__init__(AnyPattern())
+        super(MemRefIdxGlobalBind, self).__init__()
+        self.name = name
+
+    def check(self, expr, ctx):
+        if expr.opname == "memref":
+            if expr.x.opname == "idx" and expr.x.x.opname =="obj":
+                if ctx.ctx.has_memref(self.name):
+                    return ctx.ctx.get_memref(self.name).idx == expr.x.x.obj_ea
+                else:
+                    ctx.ctx.save_memref(self.name, expr.x.x.obj_ea, expr.m)
+                    return True
+        return False
+
+class VarBind(p.UnaryExpr):
+
+    def __init__(self, name):
+        super(VarBind, self).__init__(p.AnyPattern())
         self.name = name
 
     def check(self, expr, ctx):
@@ -56,10 +72,10 @@ class VarBind(UnaryExpr):
         return False
 
 
-class ObjBind(UnaryExpr):
+class ObjBind(p.UnaryExpr):
 
     def __init__(self, name):
-        super(ObjBind, self).__init__(AnyPattern())
+        super(ObjBind, self).__init__(p.AnyPattern())
         self.name = name
 
     def check(self, expr, ctx):
@@ -72,7 +88,7 @@ class ObjBind(UnaryExpr):
         return False
 
 
-class CallExpr(Pattern):
+class CallExpr(p.Pattern):
 
     def __init__(self, fcn, args):
         super(CallExpr, self).__init__()
@@ -93,7 +109,7 @@ class CallExpr(Pattern):
         return False
     
 
-class ObjConcrete(Pattern):
+class ObjConcrete(p.Pattern):
 
     def __init__(self, addr):
         super(ObjConcrete, self).__init__()
@@ -108,7 +124,7 @@ class ObjConcrete(Pattern):
         return False
 
 
-class NumberConcrete(Pattern):
+class NumberConcrete(p.Pattern):
 
     def __init__(self, num):
         super(NumberConcrete, self).__init__()
@@ -118,9 +134,9 @@ class NumberConcrete(Pattern):
         return expr._value == self.val
 
 
-class NumberPattern(UnaryExpr):
+class NumberPattern(p.UnaryExpr):
 
-    def __init__(self, num=AnyPattern()):
+    def __init__(self, num=p.AnyPattern()):
         super(NumberPattern, self).__init__(num)
 
     def check(self, expr, ctx):
@@ -129,7 +145,7 @@ class NumberPattern(UnaryExpr):
         return False
 
 
-class CastPattern(Pattern):
+class CastPattern(p.Pattern):
 
     def __init__(self, inner, cast_type=None):
         super(CastPattern, self).__init__()
@@ -153,10 +169,11 @@ TWO_OP = [
     ('Sgt', 'sgt'), ('Sge', 'sge'), ('Eq', 'eq'), ('Comma', 'comma'), ('Sshr', 'sshr'),
     ('Ushr', 'ushr'), ('Bor', 'bor'), ('AsgUShr', 'asgushr'), ('Smod', 'smod'),
     ('Xor', 'xor'), ('AsgAdd', 'asgadd'), ('AsgSub', 'asgsub'), ('BAnd', 'band'), ('AsgBor', 'asgbor'),
+    ('AsgBAnd', 'asgband')
 ]
 
 
-def BinaryGen(name, opname, BaseClass=BinaryExpr):
+def BinaryGen(name, opname, BaseClass=p.BinaryExpr):
 
     def check(self, expr, ctx):
         return expr.opname == opname and super(type(self), self).check(expr, ctx)
@@ -171,7 +188,7 @@ ONE_OP = [
 ]
 
 
-def UnaryGen(name, opname, BaseClass=UnaryExpr):
+def UnaryGen(name, opname, BaseClass=p.UnaryExpr):
 
     def check(self, expr, ctx):
         return expr.opname == opname and super(type(self), self).check(expr.x, ctx)
@@ -185,3 +202,12 @@ for i in TWO_OP:
     setattr(module, i[0] + "Pattern", BinaryGen(i[0] + "Pattern", i[1]))
 for i in ONE_OP:
     setattr(module, i[0] + "Pattern", UnaryGen(i[0] + "Pattern", i[1]))
+
+print repr(p.UnaryExpr)
+print repr(ObjBind)
+print ObjBind("www")
+print repr(p.Pattern)
+print "%x" % id(p.UnaryExpr)
+print "%x" % id(ObjBind)
+print "%x" % id(p.Pattern)
+print ObjBind("www")

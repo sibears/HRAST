@@ -2,10 +2,10 @@
 
 import ida_hexrays
 import idaapi
-from Matcher import *
+#from Matcher import *
 from ast_helper import *
-from Patterns.Instructions import *
-from Patterns.Expressions import *
+#from Patterns.Instructions import *
+#from Patterns.Expressions import *
 
 TAB_SPACES = 4
 BLOCK_TYPES = [
@@ -142,6 +142,7 @@ class FuncProcessor(object):
         'asg', 'idx', 'sub', 'mul', 'add', 'land', 'lor', 'ult', 'ule', 'ugt',
         'uge', 'sle', 'slt', 'sgt', 'sge', 'eq', 'comma', 'sshr', 'ushr', 'bor',
         'asgushr', 'smod', 'xor', 'asgadd', 'asgsub', 'band', 'asgmul', 'asgbor',
+        'asgband'
     ]
 
     ONE_OP = [
