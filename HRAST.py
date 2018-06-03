@@ -5,19 +5,19 @@ import sys
 import re
 import importlib
 import idaapi
-idaapi.require("Patterns.__init__")
-idaapi.require("Patterns.Instructions")
-idaapi.require("Patterns.Expressions")
-idaapi.require("Patterns.Patterns")
+idaapi.require("Patterns")
+#idaapi.require("Patterns.Instructions")
+#idaapi.require("Patterns.Expressions", "Patterns")
+#idaapi.require("Patterns.Patterns")
 idaapi.require("Matcher")
 idaapi.require("ast_helper")
 idaapi.require("traverse")
-from Matcher import *
-from ast_helper import *
-from Patterns.Instructions import *
-from Patterns.Expressions import *
+#from Matcher import *
+#from ast_helper import *
+#from Patterns.Instructions import *
+#from Patterns.Expressions import *
 #from Patterns import *
-from traverse import *
+#from traverse import *
 import ready_patterns
 
 EVENTS_HEXR = {
@@ -97,8 +97,8 @@ def hexrays_events_callback_m(*args):
         # print "Got level {}".format(CMAT_LEVEL[level])
         if level == idaapi.CMAT_FINAL:
             for i in used_pats:
-                func_proc = FuncProcessor(fcn)
-                matcher = Matcher(func_proc.fcn, None)
+                func_proc = traverse.FuncProcessor(fcn)
+                matcher = Matcher.Matcher(func_proc.fcn, None)
                 matcher.set_pattern(i[0])
                 matcher.chain = i[2]
                 matcher.replacer = i[1]
@@ -114,6 +114,7 @@ def hr_remove():
 
 if __name__ == "__main__":
     print "yay"
-    print ObjBind("www")
+    #print sys.modules
+    print Patterns.ObjBind("www")
     
     print idaapi.install_hexrays_callback(hexrays_events_callback_m)

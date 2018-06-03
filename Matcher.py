@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import idaapi
-#idaapi.require("Patterns.__init__")
-#idaapi.require("Patterns.Patterns")
-
 
 class SavedObj(object):
 
@@ -132,17 +129,12 @@ class Matcher(object):
                 # we're replacing chain
                 size = len(self.blk.cblock)
                 idx = None
-                # print self.node.opname
                 for i in range(size):
-                    # print self.blk.cblock.at(i).opname
                     if self.blk.cblock.at(i) == self.node:
                         idx = i
                         break
-                # idx = idx - cnt
                 while cnt != 1:
                     self.blk.cblock.remove(self.blk.cblock.at(idx))
-                    # idaapi.qswap(self.blk.cblock.at(idx), inst)
-                    # del inst
                     idx -= 1
                     cnt -= 1
                 self.replacer(self.blk.cblock.at(idx), self.ctx)

@@ -4,27 +4,27 @@ from ast_helper import *
 import idaapi
 import ida_name
 
-strlen_global = """ChainPattern([
-    ExprPattern(AsgnPattern(VarBind("t1"), ObjBind("strlenarg"))),
-    DoPattern(LnotPattern(VarBind("t2")),BlockPattern([
-        ExprPattern(AsgnPattern(VarBind("t3"), PtrPattern(AnyPattern()))),
-        ExprPattern(AsgAddPattern(VarBind("t1"),NumberPattern(NumberConcrete(4)))),
-        ExprPattern(AsgnPattern(VarBind("t2"),
-                BAndPattern(
-                    BAndPattern(
-                        BnotPattern(VarBind("t3")),
-                        SubPattern(VarBind("t3"), NumberPattern(NumberConcrete(0x1010101)))
+strlen_global = """Patterns.ChainPattern([
+    Patterns.ExprPattern(Patterns.AsgnPattern(Patterns.VarBind("t1"), Patterns.ObjBind("strlenarg"))),
+    Patterns.DoPattern(Patterns.LnotPattern(Patterns.VarBind("t2")),Patterns.BlockPattern([
+        Patterns.ExprPattern(Patterns.AsgnPattern(Patterns.VarBind("t3"), Patterns.PtrPattern(Patterns.AnyPattern()))),
+        Patterns.ExprPattern(Patterns.AsgAddPattern(Patterns.VarBind("t1"),Patterns.NumberPattern(Patterns.NumberConcrete(4)))),
+        Patterns.ExprPattern(Patterns.AsgnPattern(Patterns.VarBind("t2"),
+                Patterns.BAndPattern(
+                    Patterns.BAndPattern(
+                        Patterns.BnotPattern(Patterns.VarBind("t3")),
+                        Patterns.SubPattern(Patterns.VarBind("t3"), Patterns.NumberPattern(Patterns.NumberConcrete(0x1010101)))
                     ),
-                    NumberPattern(NumberConcrete(0x80808080))
+                    Patterns.NumberPattern(Patterns.NumberConcrete(0x80808080))
                 )
             )
         ),
         ], False)
     ),
-    ExprPattern(AsgnPattern(AnyPattern(), AnyPattern())),
-    IfPattern(AnyPattern(), AnyPattern()),
-    IfPattern(AnyPattern(), AnyPattern()),
-    ExprPattern(AsgnPattern(VarBind("res"), AnyPattern()))
+    Patterns.ExprPattern(Patterns.AsgnPattern(Patterns.AnyPattern(), Patterns.AnyPattern())),
+    Patterns.IfPattern(Patterns.AnyPattern(), Patterns.AnyPattern()),
+    Patterns.IfPattern(Patterns.AnyPattern(), Patterns.AnyPattern()),
+    Patterns.ExprPattern(Patterns.AsgnPattern(Patterns.VarBind("res"), Patterns.AnyPattern()))
 ])"""
 
 
@@ -48,13 +48,13 @@ def replacer_strlen_global(idx, ctx):
 
 # Third arg - is chain
 PATTERNS = [(strlen_global, replacer_strlen_global, True)]
-get_proc_addr = """ExprPattern(
-    AsgnPattern(
-        ObjBind("fcnPtr"),
-        CastPattern(
-            CallExpr(
-                ObjConcrete(0x{:x}),
-                [AnyPattern(), ObjBind("fcnName")]
+get_proc_addr = """Patterns.ExprPattern(
+    Patterns.AsgnPattern(
+        Patterns.ObjBind("fcnPtr"),
+        Patterns.CastPattern(
+            Patterns.CallExpr(
+                Patterns.ObjConcrete(0x{:x}),
+                [Patterns.AnyPattern(), Patterns.ObjBind("fcnName")]
             )
         )
     )
@@ -73,11 +73,11 @@ def getProc_addr(idx, ctx):
 
 # PATTERNS = [(get_proc_addr, getProc_addr, False)]
 global_struct_fields_sub = """
-ExprPattern(
-    AsgnPattern(
-        MemRefGlobalBind('stroff'),
-        CastPattern(
-            ObjBind('fcn'),
+Patterns.ExprPattern(
+    Patterns.AsgnPattern(
+        Patterns.MemRefGlobalBind('stroff'),
+        Patterns.CastPattern(
+            Patterns.ObjBind('fcn'),
         )
     )
 )"""

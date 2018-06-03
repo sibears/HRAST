@@ -202,12 +202,3 @@ for i in TWO_OP:
     setattr(module, i[0] + "Pattern", BinaryGen(i[0] + "Pattern", i[1]))
 for i in ONE_OP:
     setattr(module, i[0] + "Pattern", UnaryGen(i[0] + "Pattern", i[1]))
-
-print repr(p.UnaryExpr)
-print repr(ObjBind)
-print ObjBind("www")
-print repr(p.Pattern)
-print "%x" % id(p.UnaryExpr)
-print "%x" % id(ObjBind)
-print "%x" % id(p.Pattern)
-print ObjBind("www")
