@@ -6,18 +6,9 @@ import re
 import importlib
 import idaapi
 idaapi.require("Patterns")
-#idaapi.require("Patterns.Instructions")
-#idaapi.require("Patterns.Expressions", "Patterns")
-#idaapi.require("Patterns.Patterns")
 idaapi.require("Matcher")
 idaapi.require("ast_helper")
 idaapi.require("traverse")
-#from Matcher import *
-#from ast_helper import *
-#from Patterns.Instructions import *
-#from Patterns.Expressions import *
-#from Patterns import *
-#from traverse import *
 import ready_patterns
 
 EVENTS_HEXR = {
@@ -90,11 +81,9 @@ def hexrays_events_callback_m(*args):
     global LEV
     global NAME
     ev = args[0]
-    # print "Got {}:".format(EVENTS_HEXR[ev])
     if ev == idaapi.hxe_maturity:
         fcn = args[1]
         level = args[2]
-        # print "Got level {}".format(CMAT_LEVEL[level])
         if level == idaapi.CMAT_FINAL:
             for i in used_pats:
                 func_proc = traverse.FuncProcessor(fcn)
@@ -112,9 +101,5 @@ def hr_remove():
     idaapi.remove_hexrays_callback(hexrays_events_callback_m)
 
 
-if __name__ == "__main__":
-    print "yay"
-    #print sys.modules
-    print Patterns.ObjBind("www")
-    
+if __name__ == "__main__":    
     print idaapi.install_hexrays_callback(hexrays_events_callback_m)
