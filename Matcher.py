@@ -31,6 +31,8 @@ class SavedCTX(object):
         self.obj = {}
         self.vars = {}
         self.memref = {}
+        self.saved_insns = []
+        self.saved_expressions = {}
 
     def save_obj(self, key, ea, type):
         self.obj[key] = SavedObj(type, ea)
@@ -41,6 +43,16 @@ class SavedCTX(object):
     def save_var(self, idx, val, typ, mb):
         # val is index in fcn.lvars
         self.vars[idx] = SavedVar(val, typ, mb)
+
+    def save_expr(self, type, expr):
+        if type not in self.saved_expressions:
+            self.saved_expressions[type] = []
+        self.saved_expressions[type].append(expr)
+
+    def get_expr(self, type):
+        if type not in self.saved_expressions:
+            return []
+        return self.saved_expressions[type]
 
     def get_var_name(self, idx):
         return self.names[idx].name
@@ -67,6 +79,9 @@ class SavedCTX(object):
         self.obj = {}
         self.vars = {}
         self.memref = {}
+        #TODO: check if we need manually remove all insns from list
+        self.saved_insns = []
+        self.saved_expressions = {}
 
 
 class Matcher(object):
@@ -134,7 +149,11 @@ class Matcher(object):
                         idx = i
                         break
                 while cnt != 1:
-                    self.blk.cblock.remove(self.blk.cblock.at(idx))
+                    #We save all remove instructions to our matcher object
+                    #so we can use them inside our replacement function
+                    current = self.blk.cblock.at(idx)
+                    self.blk.cblock.remove(current)
+                    self.ctx.saved_insns.append(current)
                     idx -= 1
                     cnt -= 1
                 self.replacer(self.blk.cblock.at(idx), self.ctx)

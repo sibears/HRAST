@@ -4,6 +4,19 @@ import sys
 import Patterns as p
 
 
+class BindExpr(p.Pattern):
+
+    def __init__(self, type, expr_pattern):
+        super(BindExpr, self).__init__()
+        self.type = type
+        self.pattern = expr_pattern
+
+    def check(self, expr, ctx):
+        if self.pattern.check(expr, ctx):
+            ctx.ctx.save_expr(self.type, expr)
+            return True
+        return False
+
 class VarName(p.Pattern):
 
     def __init__(self, name):
@@ -11,7 +24,7 @@ class VarName(p.Pattern):
         self.name = name
 
     def check(self, expr, ctx):
-        return ctx.get_name(expr.idx) == self.name
+        return ctx.ctx.get_var_name(expr.idx) == self.name
 
 
 class VarPattern(p.UnaryExpr):

@@ -101,3 +101,12 @@ def _f1(idx, ctx):
     ida_struct.set_member_name(ida_struct.get_struc(ti.tid), obj.offset, name_str)
 
 # PATTERNS = [(global_struct_fields_sub, _f1, False)]
+
+test_bind_expr = """Patterns.IfPattern(Patterns.BindExpr('if_cond', Patterns.AnyPattern()), Patterns.AnyPattern())"""
+
+def test_bind(idx, ctx):
+    exprs = ctx.get_expr('if_cond')
+    for i in exprs:
+        print i
+
+PATTERNS = [(test_bind_expr, test_bind, False)]
