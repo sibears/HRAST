@@ -2,10 +2,6 @@
 
 import ida_hexrays
 import idaapi
-#from Matcher import *
-from ast_helper import *
-#from Patterns.Instructions import *
-#from Patterns.Expressions import *
 
 TAB_SPACES = 4
 BLOCK_TYPES = [
