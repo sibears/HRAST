@@ -49,13 +49,13 @@ PATTERNS = [(strlen_global, replacer_strlen_global, True)]
 
 #=======================================
 # This pattern is works with following case
-#  dword_XXXX = GetProcAddr('funcName1')
-#  dword_XXXY = GetProcAddr('funcName2')
+#  dword_XXXX = (anytype)GetProcAddr('funcName1')
+#  dword_XXXY = (anytype)GetProcAddr('funcName2')
 #  ....
 # After running this code if we decompile function where such pattern exist we will
 #  automatically get:
-#  funcName1 = GetProcAddr('funcName1')
-#  funcName2 = GetProcAddr('funcName2')
+#  funcName1 = (anytype)GetProcAddr('funcName1')
+#  funcName2 = (anytype)GetProcAddr('funcName2')
 #
 #=======================================
 get_proc_addr = """Patterns.ExprPattern(
@@ -84,11 +84,11 @@ PATTERNS = [(get_proc_addr, getProc_addr, False)]
 
 #========================================
 # This pattern will replace code like that
-#   struct_XXX.field_X = sub_XXXX
-#   struct_XXX.field_Y = sub_YYYY
+#   struct_XXX.field_X = (anytype)sub_XXXX
+#   struct_XXX.field_Y = (anytype)sub_YYYY
 # by
-#   struct_XXX.sub_XXXX = sub_XXXX
-#   struct_XXX.sub_YYYY = sub_YYYY
+#   struct_XXX.sub_XXXX = (anytype)sub_XXXX
+#   struct_XXX.sub_YYYY = (anytype)sub_YYYY
 # 
 # So, it's just renames structure fields
 #========================================
