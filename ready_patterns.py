@@ -27,7 +27,6 @@ strlen_global = """Patterns.ChainPattern([
     Patterns.ExprPattern(Patterns.AsgnPattern(Patterns.VarBind("res"), Patterns.AnyPattern()))
 ])"""
 
-
 def replacer_strlen_global(idx, ctx):
     var = ctx.get_var("res")
     varname = ctx.get_var_name(var.idx)
@@ -45,9 +44,20 @@ def replacer_strlen_global(idx, ctx):
     # del original inst because we swapped them on previous line
     del insn
 
-
 # Third arg - is chain
 PATTERNS = [(strlen_global, replacer_strlen_global, True)]
+
+#=======================================
+# This pattern is works with following case
+#  dword_XXXX = GetProcAddr('funcName1')
+#  dword_XXXY = GetProcAddr('funcName2')
+#  ....
+# After running this code if we decompile function where such pattern exist we will
+#  automatically get:
+#  funcName1 = GetProcAddr('funcName1')
+#  funcName2 = GetProcAddr('funcName2')
+#
+#=======================================
 get_proc_addr = """Patterns.ExprPattern(
     Patterns.AsgnPattern(
         Patterns.ObjBind("fcnPtr"),
@@ -61,7 +71,6 @@ get_proc_addr = """Patterns.ExprPattern(
 )
 """.format(0x3)  # 0x3 - replace by addr of getProcAddr
 
-
 def getProc_addr(idx, ctx):
     import ida_bytes
     obj = ctx.get_obj("fcnPtr")
@@ -70,8 +79,20 @@ def getProc_addr(idx, ctx):
     name_str = ida_bytes.get_strlit_contents(name.addr, -1, -1)
     ida_name.set_name(obj.addr, name_str)
 
+PATTERNS = [(get_proc_addr, getProc_addr, False)]
 
-# PATTERNS = [(get_proc_addr, getProc_addr, False)]
+
+#========================================
+# This pattern will replace code like that
+#   struct_XXX.field_X = sub_XXXX
+#   struct_XXX.field_Y = sub_YYYY
+# by
+#   struct_XXX.sub_XXXX = sub_XXXX
+#   struct_XXX.sub_YYYY = sub_YYYY
+# 
+# So, it's just renames structure fields
+#========================================
+
 global_struct_fields_sub = """
 Patterns.ExprPattern(
     Patterns.AsgnPattern(
@@ -82,8 +103,7 @@ Patterns.ExprPattern(
     )
 )"""
 
-
-def _f1(idx, ctx):
+def rename_struct_field_as_func_name(idx, ctx):
     import idc
     import ida_bytes
     obj = ctx.get_memref('stroff')
@@ -100,7 +120,15 @@ def _f1(idx, ctx):
     print "Name {}".format(name_str)
     ida_struct.set_member_name(ida_struct.get_struc(ti.tid), obj.offset, name_str)
 
-# PATTERNS = [(global_struct_fields_sub, _f1, False)]
+# PATTERNS = [(global_struct_fields_sub, rename_struct_field_as_func_name, False)]
+
+
+#==============================
+# Test case for BindExpr
+# So it just saves all condition expressions from
+# all if without else
+#==============================
+
 
 test_bind_expr = """Patterns.IfPattern(Patterns.BindExpr('if_cond', Patterns.AnyPattern()), Patterns.AnyPattern())"""
 
