@@ -1,8 +1,8 @@
-# HexRaysAST modifier
+# HexRaysAST matcher
 
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/sibears/HRAST/blob/master/LICENSE)
 
-This is simple PoC for replacing AST subtree in HexRays decompiler window
+This is simple PoC that allows you to define AST pattern you want to process and make some actions with them
 
 ### Current code contains templates for:
 1.  Replacing inlined `strlen` called on global variable
