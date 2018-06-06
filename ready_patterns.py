@@ -49,13 +49,13 @@ PATTERNS = [(strlen_global, replacer_strlen_global, True)]
 
 #=======================================
 # This pattern is works with following case
-#  dword_XXXX = (anytype)GetProcAddr('funcName1')
-#  dword_XXXY = (anytype)GetProcAddr('funcName2')
+#  dword_XXXX = (anytype)GetProcAddr(<anyArg>, 'funcName1')
+#  dword_XXXY = (anytype)GetProcAddr(<anyArg>, 'funcName2')
 #  ....
 # After running this code if we decompile function where such pattern exist we will
 #  automatically get:
-#  funcName1 = (anytype)GetProcAddr('funcName1')
-#  funcName2 = (anytype)GetProcAddr('funcName2')
+#  funcName1 = (anytype)GetProcAddr(<anyArg>, 'funcName1')
+#  funcName2 = (anytype)GetProcAddr(<anyArg>, 'funcName2')
 #
 #=======================================
 get_proc_addr = """Patterns.ExprPattern(
