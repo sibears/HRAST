@@ -182,7 +182,7 @@ TWO_OP = [
     ('Sgt', 'sgt'), ('Sge', 'sge'), ('Eq', 'eq'), ('Comma', 'comma'), ('Sshr', 'sshr'),
     ('Ushr', 'ushr'), ('Bor', 'bor'), ('AsgUShr', 'asgushr'), ('Smod', 'smod'),
     ('Xor', 'xor'), ('AsgAdd', 'asgadd'), ('AsgSub', 'asgsub'), ('BAnd', 'band'), ('AsgBor', 'asgbor'),
-    ('AsgBAnd', 'asgband')
+    ('AsgBAnd', 'asgband'), ('Ne', 'ne'), ('Shl', 'shl'), ('Shr', 'shr'), ('Fdiv', 'fdiv'), ('Sdiv', 'sdiv'), ('Fmul', 'fmul')
 ]
 
 
@@ -196,7 +196,7 @@ def BinaryGen(name, opname, BaseClass=p.BinaryExpr):
 
 
 ONE_OP = [
-    ('Preinc', 'preinc'), ('Predec', 'predec'), ('Ne', 'ne'), ('Lnot', 'lnot'),
+    ('Preinc', 'preinc'), ('Predec', 'predec'), ('Lnot', 'lnot'),
     ('Ref', 'ref'), ('Bnot', 'bnot'), ('Postinc', 'postinc'), ('Postdec', 'postdec'), ('Ptr', 'ptr'),
 ]
 

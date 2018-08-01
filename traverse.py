@@ -61,6 +61,8 @@ class FuncProcessor(object):
             return [node.cfor.body]
         elif opname == "empty":
             return None
+        elif opname == "continue":
+            return None
         else:
             print "[-] Got unexpected opname {}".format(node.opname)
             raise Exception('Got unexpected opname {}'.format(node.opname))
@@ -138,11 +140,11 @@ class FuncProcessor(object):
         'asg', 'idx', 'sub', 'mul', 'add', 'land', 'lor', 'ult', 'ule', 'ugt',
         'uge', 'sle', 'slt', 'sgt', 'sge', 'eq', 'comma', 'sshr', 'ushr', 'bor',
         'asgushr', 'smod', 'xor', 'asgadd', 'asgsub', 'band', 'asgmul', 'asgbor',
-        'asgband'
+        'asgband', 'ne', 'shl', 'shr', 'fdiv', 'fmul', 'sdiv'
     ]
 
     ONE_OP = [
-        'preinc', 'predec', 'ne', 'lnot', 'ref', 'bnot', 'postinc', 'postdec',
+        'preinc', 'predec', 'lnot', 'ref', 'bnot', 'postinc', 'postdec', 'neg',
     ]
 
     def process_expr(self, exp, shift):
@@ -185,6 +187,9 @@ class FuncProcessor(object):
         elif opname == "num":
             if self.DEBUG:
                 print "{}[+] Number: {:x}".format(" " * ((shift + 1) * TAB_SPACES), exp.n._value)
+        elif opname == "fnum":
+            if self.DEBUG:
+                print "{}[+] Float number {}".format(" "* ((shift+1) * TAB_SPACES), ["{:x}".format(x) for x in exp.fpc.fnum])
         elif opname == "cast":
             if self.DEBUG:
                 print "{}[+] CastTo: {}".format(" " * ((shift + 1) * TAB_SPACES), exp.type.dstr())
