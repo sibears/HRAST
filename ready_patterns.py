@@ -138,7 +138,6 @@ def test_bind(idx, ctx):
         print i
 
 PATTERNS = [(test_bind_expr, test_bind, False)]
-<<<<<<< HEAD
 
 test_deep = """
 Patterns.ExprPattern(
@@ -169,5 +168,3 @@ def test_xx(idx, ctx):
     elif tname == "class2":
         uni[0].m = 1
 PATTERNS = [(test_deep, test_xx, False)]
-=======
->>>>>>> df25cd69eb734217cb754b4b032b0ec416b97536
