@@ -158,13 +158,36 @@ Patterns.ExprPattern(
     )
 )
 """
+
+test_deep_without_cast = """Patterns.ExprPattern(
+    Patterns.CallExpr(
+        Patterns.MemptrPattern(
+            Patterns.BindExpr(
+                'union_type',
+                Patterns.MemrefPattern(
+                    Patterns.DeepExprPattern(
+                        Patterns.MemptrPattern(Patterns.VarBind('v1'), 0, 8)
+                    )
+                )
+            )
+        ),
+        [Patterns.AnyPattern() for i in range(12)]
+    )
+)
+"""
 #Dummy example for switching vptr union based on variable type
 def test_xx(idx, ctx):
+    import ida_typeinf
     uni = ctx.get_expr('union_type')
     var = ctx.get_var('v1')
     tname =  var.typ.dstr().split(' ')[0]
+    tinfo = idaapi.tinfo_t()
     if tname == 'class1':
+        idaapi.parse_decl2(idaapi.cvar.idati, 'vptr1_1 *;', tinfo, idaapi.PT_TYP)
+        uni[0].type = tinfo
         uni[0].m = 0
     elif tname == "class2":
+        idaapi.parse_decl2(idaapi.cvar.idati, 'struc_5 *;', tinfo, idaapi.PT_TYP)
+        uni[0].type = tinfo
         uni[0].m = 1
-PATTERNS = [(test_deep, test_xx, False)]
+PATTERNS = [(test_deep, test_xx, False), (test_deep_without_cast, test_xx, False)]
