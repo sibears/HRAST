@@ -2,6 +2,7 @@
 
 import sys
 import Patterns as p
+import Nodes
 
 
 class BindExpr(p.Pattern):
@@ -52,6 +53,37 @@ class MemRefGlobalBind(p.Pattern):
                     return True
         return False
 
+
+class MemptrPattern(p.Pattern):
+    
+    def __init__(self, x, offset = -1, size = -1):
+        super(MemptrPattern, self).__init__()
+        self.x = x
+        self.offset = offset
+        self.size = size
+
+    def check(self, expr, ctx):
+        if expr.opname == "memptr":
+            if self.offset != -1 and self.offset != expr.m:
+                return False
+            if self.size != -1 and self.size != expr.ptrsize:
+                return False
+            return self.x.check(expr.x, ctx)
+        return False
+
+class MemrefPattern(p.Pattern):
+    
+    def __init__(self, x, offset = -1):
+        super(MemrefPattern, self).__init__()
+        self.x = x
+        self.offset = offset
+
+    def check(self, expr, ctx):
+        if expr.opname == "memref":
+            if self.offset != -1 and self.offset != expr.m:
+                return False
+            return self.x.check(expr.x, ctx)
+        return False
 
 class MemRefIdxGlobalBind(p.Pattern):
 
@@ -175,17 +207,6 @@ class CastPattern(p.Pattern):
         return False
 
 
-TWO_OP = [
-    ('Asgn', 'asg'), ('Idx', 'idx'), ('Sub', 'sub'), ('Mul', 'mul'),
-    ('Add', 'add'), ('Land', 'land'), ('Lor', 'lor'), ('Ult', 'ult'),
-    ('Ule', 'ule'), ('Ugt', 'ugt'), ('Uge', 'uge'), ('Sle', 'sle'), ('Slt', 'slt'),
-    ('Sgt', 'sgt'), ('Sge', 'sge'), ('Eq', 'eq'), ('Comma', 'comma'), ('Sshr', 'sshr'),
-    ('Ushr', 'ushr'), ('Bor', 'bor'), ('AsgUShr', 'asgushr'), ('Smod', 'smod'),
-    ('Xor', 'xor'), ('AsgAdd', 'asgadd'), ('AsgSub', 'asgsub'), ('BAnd', 'band'), ('AsgBor', 'asgbor'),
-    ('AsgBAnd', 'asgband'), ('Ne', 'ne'), ('Shl', 'shl'), ('Shr', 'shr'), ('Fdiv', 'fdiv'), ('Sdiv', 'sdiv'), ('Fmul', 'fmul')
-]
-
-
 def BinaryGen(name, opname, BaseClass=p.BinaryExpr):
 
     def check(self, expr, ctx):
@@ -193,13 +214,6 @@ def BinaryGen(name, opname, BaseClass=p.BinaryExpr):
 
     newclass = type(name, (BaseClass,), {"check": check})
     return newclass
-
-
-ONE_OP = [
-    ('Preinc', 'preinc'), ('Predec', 'predec'), ('Lnot', 'lnot'),
-    ('Ref', 'ref'), ('Bnot', 'bnot'), ('Postinc', 'postinc'), ('Postdec', 'postdec'), ('Ptr', 'ptr'),
-]
-
 
 def UnaryGen(name, opname, BaseClass=p.UnaryExpr):
 
@@ -209,9 +223,8 @@ def UnaryGen(name, opname, BaseClass=p.UnaryExpr):
     newclass = type(name, (BaseClass,), {"check": check})
     return newclass
 
-
 module = sys.modules[__name__]
-for i in TWO_OP:
+for i in Nodes.TWO_OP:
     setattr(module, i[0] + "Pattern", BinaryGen(i[0] + "Pattern", i[1]))
-for i in ONE_OP:
+for i in Nodes.ONE_OP:
     setattr(module, i[0] + "Pattern", UnaryGen(i[0] + "Pattern", i[1]))

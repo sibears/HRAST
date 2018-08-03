@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import traversal
 
 class Pattern(object):
 
@@ -61,6 +61,20 @@ class ChainPattern(object):
             self.pos = 0
         return ret_val
 
+
+class DeepExprPattern(object):
+
+    def __init__(self, expression):
+        self._expr = expression
+
+    def check(self, inst, ctx):
+        if self._expr.check(inst, ctx):
+            return True
+        exprs = traversal.get_inner_expr_to_check(inst)
+        for i in exprs:
+            if self._expr.check(i, ctx):
+                return True
+        return False
 
 class GreedyPattern(object):
     """This class matches several instructions ended by stopper"""
