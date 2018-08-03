@@ -49,13 +49,13 @@ PATTERNS = [(strlen_global, replacer_strlen_global, True)]
 
 #=======================================
 # This pattern is works with following case
-#  dword_XXXX = (anytype)GetProcAddr('funcName1')
-#  dword_XXXY = (anytype)GetProcAddr('funcName2')
+#  dword_XXXX = (anytype)GetProcAddr(<anyArg>, 'funcName1')
+#  dword_XXXY = (anytype)GetProcAddr(<anyArg>, 'funcName2')
 #  ....
 # After running this code if we decompile function where such pattern exist we will
 #  automatically get:
-#  funcName1 = (anytype)GetProcAddr('funcName1')
-#  funcName2 = (anytype)GetProcAddr('funcName2')
+#  funcName1 = (anytype)GetProcAddr(<anyArg>, 'funcName1')
+#  funcName2 = (anytype)GetProcAddr(<anyArg>, 'funcName2')
 #
 #=======================================
 get_proc_addr = """Patterns.ExprPattern(
@@ -138,6 +138,7 @@ def test_bind(idx, ctx):
         print i
 
 PATTERNS = [(test_bind_expr, test_bind, False)]
+<<<<<<< HEAD
 
 test_deep = """
 Patterns.ExprPattern(
@@ -168,3 +169,5 @@ def test_xx(idx, ctx):
     elif tname == "class2":
         uni[0].m = 1
 PATTERNS = [(test_deep, test_xx, False)]
+=======
+>>>>>>> df25cd69eb734217cb754b4b032b0ec416b97536
