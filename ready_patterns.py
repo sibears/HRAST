@@ -138,3 +138,33 @@ def test_bind(idx, ctx):
         print i
 
 PATTERNS = [(test_bind_expr, test_bind, False)]
+
+test_deep = """
+Patterns.ExprPattern(
+    Patterns.CallExpr(
+        Patterns.CastPattern(
+            Patterns.MemptrPattern(
+                Patterns.BindExpr(
+                    'union_type',
+                    Patterns.MemrefPattern(
+                        Patterns.DeepExprPattern(
+                            Patterns.MemptrPattern(Patterns.VarBind('v1'), 0, 8)
+                        )
+                    )
+                )
+            )
+        ),
+        [Patterns.AnyPattern() for i in range(12)]
+    )
+)
+"""
+#Dummy example for switching vptr union based on variable type
+def test_xx(idx, ctx):
+    uni = ctx.get_expr('union_type')
+    var = ctx.get_var('v1')
+    tname =  var.typ.dstr().split(' ')[0]
+    if tname == 'class1':
+        uni[0].m = 0
+    elif tname == "class2":
+        uni[0].m = 1
+PATTERNS = [(test_deep, test_xx, False)]
