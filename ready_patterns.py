@@ -79,7 +79,7 @@ def getProc_addr(idx, ctx):
     name_str = ida_bytes.get_strlit_contents(name.addr, -1, -1)
     ida_name.set_name(obj.addr, name_str)
 
-PATTERNS = [(get_proc_addr, getProc_addr, False)]
+#PATTERNS = [(get_proc_addr, getProc_addr, False)]
 
 
 #========================================
@@ -137,7 +137,16 @@ def test_bind(idx, ctx):
     for i in exprs:
         print i
 
-PATTERNS = [(test_bind_expr, test_bind, False)]
+#PATTERNS = [(test_bind_expr, test_bind, False)]
+
+#==============================================================
+# Dummy example for switching vptr union based on variable type
+# Here we have union like that
+# union a{
+#    vptr1_1 *class1;
+#    struc_5 *class2;   
+# }
+#==============================================================
 
 test_deep = """
 Patterns.ExprPattern(
@@ -175,7 +184,7 @@ test_deep_without_cast = """Patterns.ExprPattern(
     )
 )
 """
-#Dummy example for switching vptr union based on variable type
+
 def test_xx(idx, ctx):
     import ida_typeinf
     uni = ctx.get_expr('union_type')
