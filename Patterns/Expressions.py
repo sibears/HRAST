@@ -162,8 +162,6 @@ class ObjConcrete(p.Pattern):
 
     def check(self, expr, ctx):
         if expr.opname == "obj":
-            print "{:x}".format(expr.obj_ea)
-            print "{:x}".format(self.addr)
             if expr.obj_ea == self.addr:
                 return True
         return False
