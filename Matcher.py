@@ -28,6 +28,7 @@ class SavedCTX(object):
     """Class which holds all collected context"""
     def __init__(self, fcn):
         self.names = fcn.lvars
+        self.fcn = fcn
         self.obj = {}
         self.vars = {}
         self.memref = {}
