@@ -129,19 +129,24 @@ class Matcher(object):
 
     def is_chain(self):
         return self.chain
+    
+    def is_chain_observer(self):
+        return self.is_chain() and self.pattern.make_mod
 
     def is_finished(self):
         return self.cnt is not None
 
     def replace_if_need(self):
-
+        #return True if we make any replacement in current node
         cnt = self.cnt
         self.cnt = None
+        ret = False
         if self.replacer is not None:
-            if not self.is_chain():
+            if not self.is_chain() or self.is_chain_observer():
                 # we're replacing single instruction
-                self.replacer(self.node, self.ctx)
+                ret = self.replacer(self.node, self.ctx)
             else:
+                ret = True
                 # we're replacing chain
                 size = len(self.blk.cblock)
                 idx = None
@@ -159,3 +164,4 @@ class Matcher(object):
                     cnt -= 1
                 self.replacer(self.blk.cblock.at(idx), self.ctx)
         self.ctx.clear_ctx()
+        return ret

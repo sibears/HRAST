@@ -20,7 +20,7 @@ class FuncProcessor(object):
         self.curr_cblock = []
         self.DEBUG = False
 
-    def process_exprs_and_get_next(self, node, shift):
+    def process_inst_and_get_next(self, node, shift):
         #TODO: refactor return values
         opname = node.opname
         if opname == "block":
@@ -81,7 +81,7 @@ class FuncProcessor(object):
             vals = "default"
         if self.DEBUG:
             print "{}[+]Got case {} num {}".format(" " * (shift * TAB_SPACES), cas.opname, str(vals))
-        fields = self.process_exprs_and_get_next(cas, shift)
+        fields = self.process_inst_and_get_next(cas, shift)
         if fields is None:
             return
         for i in fields:
@@ -112,18 +112,21 @@ class FuncProcessor(object):
                         print "[+] Found pattern chain {}".format(node.opname)
                         self.pattern.set_cblk_and_node(self.curr_cblock[-1], node)
                         self.pattern.replace_if_need()
-                        # This variable need to overcome situation with deleting instructions from
-                        # cblock. I guess fields list from line 129 are actually some kind of pointers
-                        # which can be invalidated during cblock body replacement process
-                        self.need_reanalyze_cblock = True
-                    return
+                        if not self.pattern.is_chain_observer():
+                            # This variable need to overcome situation with deleting instructions from
+                            # cblock. I guess fields list are actually some kind of pointers
+                            # which can be invalidated during cblock body replacement process
+                            self.need_reanalyze_cblock = True
+                    """If we don't modify anything in current node we can process next fields"""
+                    if not self.pattern.is_chain_observer():
+                        return
             else:
                 if self.pattern.check(node):
                     print "[+] Found unary pattern!"
                     self.pattern.set_node(node)
-                    self.pattern.replace_if_need()
-                    return
-        fields = self.process_exprs_and_get_next(node, shift)
+                    if self.pattern.replace_if_need() == True:
+                        return
+        fields = self.process_inst_and_get_next(node, shift)
         if fields is None:
             return
         for i in fields:

@@ -45,9 +45,10 @@ class UnaryExpr(Pattern):
 
 class ChainPattern(object):
 
-    def __init__(self, array):
+    def __init__(self, array, make_mod=True):
         self._list = array
         self.pos = 0
+        self.make_mod = make_mod
 
     def check(self, inst, ctx):
         ret_val = self._list[self.pos].check(inst, ctx)

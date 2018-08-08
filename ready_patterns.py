@@ -43,6 +43,7 @@ def replacer_strlen_global(idx, ctx):
     idaapi.qswap(idx, insn)
     # del original inst because we swapped them on previous line
     del insn
+    return True
 
 # Third arg - is chain
 PATTERNS = [(strlen_global, replacer_strlen_global, True)]
@@ -78,6 +79,7 @@ def getProc_addr(idx, ctx):
     name = ctx.get_obj("fcnName")
     name_str = ida_bytes.get_strlit_contents(name.addr, -1, -1)
     ida_name.set_name(obj.addr, name_str)
+    return False
 
 #PATTERNS = [(get_proc_addr, getProc_addr, False)]
 
@@ -119,6 +121,7 @@ def rename_struct_field_as_func_name(idx, ctx):
     name_str = ida_name.get_name(obj2.addr)
     print "Name {}".format(name_str)
     ida_struct.set_member_name(ida_struct.get_struc(ti.tid), obj.offset, name_str)
+    return False
 
 # PATTERNS = [(global_struct_fields_sub, rename_struct_field_as_func_name, False)]
 
@@ -136,7 +139,7 @@ def test_bind(idx, ctx):
     exprs = ctx.get_expr('if_cond')
     for i in exprs:
         print i
-
+    return False
 #PATTERNS = [(test_bind_expr, test_bind, False)]
 
 #==============================================================
@@ -199,4 +202,8 @@ def test_xx(idx, ctx):
         idaapi.parse_decl2(idaapi.cvar.idati, 'struc_5 *;', tinfo, idaapi.PT_TYP)
         uni[0].type = tinfo
         uni[0].m = 1
+    else:
+        return False
+    return True
+
 PATTERNS = [(test_deep, test_xx, False), (test_deep_without_cast, test_xx, False)]
