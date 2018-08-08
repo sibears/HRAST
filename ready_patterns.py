@@ -5,26 +5,26 @@ import idaapi
 import ida_name
 
 strlen_global = """Patterns.ChainPattern([
-    Patterns.ExprPattern(Patterns.AsgnPattern(Patterns.VarBind("t1"), Patterns.ObjBind("strlenarg"))),
-    Patterns.DoPattern(Patterns.LnotPattern(Patterns.VarBind("t2")),Patterns.BlockPattern([
-        Patterns.ExprPattern(Patterns.AsgnPattern(Patterns.VarBind("t3"), Patterns.PtrPattern(Patterns.AnyPattern()))),
-        Patterns.ExprPattern(Patterns.AsgAddPattern(Patterns.VarBind("t1"),Patterns.NumberPattern(Patterns.NumberConcrete(4)))),
-        Patterns.ExprPattern(Patterns.AsgnPattern(Patterns.VarBind("t2"),
-                Patterns.BAndPattern(
-                    Patterns.BAndPattern(
-                        Patterns.BnotPattern(Patterns.VarBind("t3")),
-                        Patterns.SubPattern(Patterns.VarBind("t3"), Patterns.NumberPattern(Patterns.NumberConcrete(0x1010101)))
+    Patterns.ExprInst(Patterns.AsgnExpr(Patterns.VarBind("t1"), Patterns.ObjBind("strlenarg"))),
+    Patterns.DoInst(Patterns.LnotExpr(Patterns.VarBind("t2")),Patterns.BlockInst([
+        Patterns.ExprInst(Patterns.AsgnExpr(Patterns.VarBind("t3"), Patterns.PtrExpr(Patterns.AnyPattern()))),
+        Patterns.ExprInst(Patterns.AsgAddExpr(Patterns.VarBind("t1"),Patterns.NumberExpr(Patterns.NumberConcrete(4)))),
+        Patterns.ExprInst(Patterns.AsgnExpr(Patterns.VarBind("t2"),
+                Patterns.BAndExpr(
+                    Patterns.BAndExpr(
+                        Patterns.BnotExpr(Patterns.VarBind("t3")),
+                        Patterns.SubExpr(Patterns.VarBind("t3"), Patterns.NumberExpr(Patterns.NumberConcrete(0x1010101)))
                     ),
-                    Patterns.NumberPattern(Patterns.NumberConcrete(0x80808080))
+                    Patterns.NumberExpr(Patterns.NumberConcrete(0x80808080))
                 )
             )
         ),
         ], False)
     ),
-    Patterns.ExprPattern(Patterns.AsgnPattern(Patterns.AnyPattern(), Patterns.AnyPattern())),
-    Patterns.IfPattern(Patterns.AnyPattern(), Patterns.AnyPattern()),
-    Patterns.IfPattern(Patterns.AnyPattern(), Patterns.AnyPattern()),
-    Patterns.ExprPattern(Patterns.AsgnPattern(Patterns.VarBind("res"), Patterns.AnyPattern()))
+    Patterns.ExprInst(Patterns.AsgnExpr(Patterns.AnyPattern(), Patterns.AnyPattern())),
+    Patterns.IfInst(Patterns.AnyPattern(), Patterns.AnyPattern()),
+    Patterns.IfInst(Patterns.AnyPattern(), Patterns.AnyPattern()),
+    Patterns.ExprInst(Patterns.AsgnExpr(Patterns.VarBind("res"), Patterns.AnyPattern()))
 ])"""
 
 def replacer_strlen_global(idx, ctx):
@@ -58,10 +58,10 @@ PATTERNS = [(strlen_global, replacer_strlen_global, True)]
 #  funcName2 = (anytype)GetProcAddr(<anyArg>, 'funcName2')
 #
 #=======================================
-get_proc_addr = """Patterns.ExprPattern(
-    Patterns.AsgnPattern(
+get_proc_addr = """Patterns.ExprInst(
+    Patterns.AsgnExpr(
         Patterns.ObjBind("fcnPtr"),
-        Patterns.CastPattern(
+        Patterns.CastExpr(
             Patterns.CallExpr(
                 Patterns.ObjConcrete(0x{:x}),
                 [Patterns.AnyPattern(), Patterns.ObjBind("fcnName")]
@@ -94,10 +94,10 @@ def getProc_addr(idx, ctx):
 #========================================
 
 global_struct_fields_sub = """
-Patterns.ExprPattern(
-    Patterns.AsgnPattern(
+Patterns.ExprInst(
+    Patterns.AsgnExpr(
         Patterns.MemRefGlobalBind('stroff'),
-        Patterns.CastPattern(
+        Patterns.CastExpr(
             Patterns.ObjBind('fcn'),
         )
     )
@@ -130,7 +130,7 @@ def rename_struct_field_as_func_name(idx, ctx):
 #==============================
 
 
-test_bind_expr = """Patterns.IfPattern(Patterns.BindExpr('if_cond', Patterns.AnyPattern()), Patterns.AnyPattern())"""
+test_bind_expr = """Patterns.IfInst(Patterns.BindExpr('if_cond', Patterns.AnyPattern()), Patterns.AnyPattern())"""
 
 def test_bind(idx, ctx):
     exprs = ctx.get_expr('if_cond')
@@ -149,15 +149,15 @@ def test_bind(idx, ctx):
 #==============================================================
 
 test_deep = """
-Patterns.ExprPattern(
+Patterns.ExprInst(
     Patterns.CallExpr(
-        Patterns.CastPattern(
-            Patterns.MemptrPattern(
+        Patterns.CastExpr(
+            Patterns.MemptrExpr(
                 Patterns.BindExpr(
                     'union_type',
-                    Patterns.MemrefPattern(
+                    Patterns.MemrefExpr(
                         Patterns.DeepExprPattern(
-                            Patterns.MemptrPattern(Patterns.VarBind('v1'), 0, 8)
+                            Patterns.MemptrExpr(Patterns.VarBind('v1'), 0, 8)
                         )
                     )
                 )
@@ -168,14 +168,14 @@ Patterns.ExprPattern(
 )
 """
 
-test_deep_without_cast = """Patterns.ExprPattern(
+test_deep_without_cast = """Patterns.ExprInst(
     Patterns.CallExpr(
-        Patterns.MemptrPattern(
+        Patterns.MemptrExpr(
             Patterns.BindExpr(
                 'union_type',
-                Patterns.MemrefPattern(
+                Patterns.MemrefExpr(
                     Patterns.DeepExprPattern(
-                        Patterns.MemptrPattern(Patterns.VarBind('v1'), 0, 8)
+                        Patterns.MemptrExpr(Patterns.VarBind('v1'), 0, 8)
                     )
                 )
             )

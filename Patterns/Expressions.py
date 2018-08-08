@@ -28,13 +28,13 @@ class VarName(p.Pattern):
         return ctx.ctx.get_var_name(expr.idx) == self.name
 
 
-class VarPattern(p.UnaryExpr):
+class VarExpr(p.UnaryExpr):
 
     def __init__(self, name=p.AnyPattern()):
-        super(VarPattern, self).__init__(name)
+        super(VarExpr, self).__init__(name)
 
     def check(self, expr, ctx):
-        return expr.opname == "var" and super(VarPattern, self).check(expr.v, ctx)
+        return expr.opname == "var" and super(VarExpr, self).check(expr.v, ctx)
 
 
 class MemRefGlobalBind(p.Pattern):
@@ -54,10 +54,10 @@ class MemRefGlobalBind(p.Pattern):
         return False
 
 
-class MemptrPattern(p.Pattern):
+class MemptrExpr(p.Pattern):
     
     def __init__(self, x, offset = -1, size = -1):
-        super(MemptrPattern, self).__init__()
+        super(MemptrExpr, self).__init__()
         self.x = x
         self.offset = offset
         self.size = size
@@ -71,10 +71,10 @@ class MemptrPattern(p.Pattern):
             return self.x.check(expr.x, ctx)
         return False
 
-class MemrefPattern(p.Pattern):
+class MemrefExpr(p.Pattern):
     
     def __init__(self, x, offset = -1):
-        super(MemrefPattern, self).__init__()
+        super(MemrefExpr, self).__init__()
         self.x = x
         self.offset = offset
 
@@ -177,21 +177,21 @@ class NumberConcrete(p.Pattern):
         return expr._value == self.val
 
 
-class NumberPattern(p.UnaryExpr):
+class NumberExpr(p.UnaryExpr):
 
     def __init__(self, num=p.AnyPattern()):
-        super(NumberPattern, self).__init__(num)
+        super(NumberExpr, self).__init__(num)
 
     def check(self, expr, ctx):
         if expr.opname == "num":
-            return super(NumberPattern, self).check(expr.n, ctx)
+            return super(NumberExpr, self).check(expr.n, ctx)
         return False
 
 
-class CastPattern(p.Pattern):
+class CastExpr(p.Pattern):
 
     def __init__(self, inner, cast_type=None):
-        super(CastPattern, self).__init__()
+        super(CastExpr, self).__init__()
         self.cast_type = cast_type
         self.inner = inner
 
@@ -222,6 +222,6 @@ def UnaryGen(name, opname, BaseClass=p.UnaryExpr):
 
 module = sys.modules[__name__]
 for i in Nodes.TWO_OP:
-    setattr(module, i[0] + "Pattern", BinaryGen(i[0] + "Pattern", i[1]))
+    setattr(module, i[0] + "Expr", BinaryGen(i[0] + "Expr", i[1]))
 for i in Nodes.ONE_OP:
-    setattr(module, i[0] + "Pattern", UnaryGen(i[0] + "Pattern", i[1]))
+    setattr(module, i[0] + "Expr", UnaryGen(i[0] + "Expr", i[1]))

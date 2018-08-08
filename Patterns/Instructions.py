@@ -3,7 +3,7 @@
 from Patterns import *
 
 
-class IfPattern(object):
+class IfInst(object):
 
     def __init__(self, cond, then, els=None):
 
@@ -29,19 +29,19 @@ class SingleInst(object):
         self.inner = inner
 
     def check(self, insn, ctx):
-        #TODO: hmmm... isn't it a ExprPattern?
+        #TODO: hmmm... isn't it a ExprInst?
         #TODO: maybe will be good to rename class and add checking inside conditions
         if insn.opname in ['block', 'if', 'for', 'while', 'do']:
             return False
         return self.inner.check(insn, ctx)
 
-class EmptyPattern(object):
+class EmptyInst(object):
 
     def check(self, insn, ctx):
         return insn.opname == "empty"
 
 
-class BlockPattern(object):
+class BlockInst(object):
 
     def __init__(self, nodes, strict=True):
         self.nodes = nodes
@@ -90,7 +90,7 @@ class BlockPattern(object):
             pos += 1
 
 
-class SwitchPattern(object):
+class SwitchInst(object):
 
     def __init__(self, expr, cases):
         self.expr = expr
@@ -103,7 +103,7 @@ class SwitchPattern(object):
         return False
 
 
-class WhilePattern(object):
+class WhileInst(object):
 
     def __init__(self, cond, body):
         self.cond = cond
@@ -115,7 +115,7 @@ class WhilePattern(object):
         return False
 
 
-class DoPattern(object):
+class DoInst(object):
     def __init__(self, cond, body):
         self.cond = cond
         self.body = body
@@ -126,7 +126,7 @@ class DoPattern(object):
         return False
 
 
-class ReturnPattern(object):
+class ReturnInst(object):
 
     def __init__(self, exp):
         self.expr = exp
@@ -134,7 +134,7 @@ class ReturnPattern(object):
     def check(self, insn, ctx):
         return insn.opname == 'return' and self.expr.check(insn.creturn.expr, ctx)
 
-class ExprPattern(object):
+class ExprInst(object):
 
     def __init__(self, exp):
         self.expr = exp
@@ -143,7 +143,7 @@ class ExprPattern(object):
         return expr.opname == "expr" and self.expr.check(expr.cexpr, ctx)
 
 
-class ForPattern(object):
+class ForInst(object):
 
     def __init__(self, init, expr, step, body):
         self.init = init
