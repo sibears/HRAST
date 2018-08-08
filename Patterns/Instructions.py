@@ -115,6 +115,14 @@ class DoPattern(object):
         return False
 
 
+class ReturnPattern(object):
+
+    def __init__(self, exp):
+        self.expr = exp
+
+    def check(self, insn, ctx):
+        return insn.opname == 'return' and self.expr.check(insn.creturn.expr, ctx)
+
 class ExprPattern(object):
 
     def __init__(self, exp):
