@@ -23,6 +23,17 @@ class IfPattern(object):
                     return insn.cif.ielse is None
         return False
 
+class SingleInst(object):
+
+    def __init__(self, inner):
+        self.inner = inner
+
+    def check(self, insn, ctx):
+        #TODO: hmmm... isn't it a ExprPattern?
+        #TODO: maybe will be good to rename class and add checking inside conditions
+        if insn.opname in ['block', 'if', 'for', 'while', 'do']:
+            return False
+        return self.inner.check(insn, ctx)
 
 class EmptyPattern(object):
 
