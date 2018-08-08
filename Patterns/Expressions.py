@@ -200,7 +200,6 @@ class CastPattern(p.Pattern):
             if self.cast_type is not None and expr.type.dstr() != self.cast_type:
                 return False
             res = self.inner.check(expr.x, ctx)
-            print "Cast check ret {}".format(res)
             return res
         return False
 
