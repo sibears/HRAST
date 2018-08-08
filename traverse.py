@@ -21,6 +21,7 @@ class FuncProcessor(object):
         self.DEBUG = False
 
     def process_exprs_and_get_next(self, node, shift):
+        #TODO: refactor return values
         opname = node.opname
         if opname == "block":
             return node.cblock
@@ -62,6 +63,8 @@ class FuncProcessor(object):
         elif opname == "empty":
             return None
         elif opname == "continue":
+            return None
+        elif opname == "asm":
             return None
         else:
             print "[-] Got unexpected opname {}".format(node.opname)
@@ -140,11 +143,13 @@ class FuncProcessor(object):
         'asg', 'idx', 'sub', 'mul', 'add', 'land', 'lor', 'ult', 'ule', 'ugt',
         'uge', 'sle', 'slt', 'sgt', 'sge', 'eq', 'comma', 'sshr', 'ushr', 'bor',
         'asgushr', 'smod', 'xor', 'asgadd', 'asgsub', 'band', 'asgmul', 'asgbor',
-        'asgband', 'ne', 'shl', 'shr', 'fdiv', 'fmul', 'sdiv'
+        'asgband', 'ne', 'shl', 'fdiv', 'fmul', 'sdiv', 'udiv', 'asgshl',
+        'asgmul', 'asgxor', 'fsub', 'asgsshr', 'asgsdiv', 'asgudiv', 'asgumod', 'asgsmod',
+        'umod', 'fadd'
     ]
 
     ONE_OP = [
-        'preinc', 'predec', 'lnot', 'ref', 'bnot', 'postinc', 'postdec', 'neg',
+        'preinc', 'predec', 'lnot', 'ref', 'bnot', 'postinc', 'postdec', 'neg', 'fneg', 'str' 
     ]
 
     def process_expr(self, exp, shift):
@@ -195,6 +200,10 @@ class FuncProcessor(object):
                 print "{}[+] CastTo: {}".format(" " * ((shift + 1) * TAB_SPACES), exp.type.dstr())
             self.traverse_expr(exp.x, shift + 1)
         elif opname == "empty":
+            pass
+        elif opname == "sizeof":
+            if self.DEBUG:
+                print "{}[+] sizeof".format(" " * ((shift + 1) * TAB_SPACES))
             pass
         else:
             print "[-] Got unknown expr {}".format(opname)

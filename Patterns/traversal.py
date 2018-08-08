@@ -43,8 +43,12 @@ def get_inner_entities_list(node):
         return [node.cwhile.expr, node.cwhile.body]
     elif opname == "break":
         return []
+    elif opname == "asm":
+        return []
     elif opname == "switch":
         #TODO: do something
+        return []
+    elif opname == "continue":
         return []
     elif opname == "for":
         return filter(lambda x : x is not None, [node.cfor.init, node.cfor.expr, node.cfor.step, node.cfor.body])
