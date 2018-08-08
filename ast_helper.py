@@ -76,3 +76,10 @@ def make_cexpr_insn(ea, obj):
     insn.op = ida_hexrays.cit_expr
     insn.cexpr = obj
     return insn
+
+def make_comment(fcn, obj, comm):
+    tl = ida_hexrays.treeloc_t()
+    tl.ea = obj.ea
+    tl.itp = ida_hexrays.ITP_SEMI
+    fcn.set_user_cmt(tl, comm)
+    fcn.save_user_cmts()
