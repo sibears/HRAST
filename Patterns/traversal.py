@@ -74,7 +74,7 @@ def get_inner_entities_list_expr(exp):
         return [exp.x] + [i for i in exp.a] + get_inner_entities_list_expr(exp.x) + sum([get_inner_entities_list_expr(i) for i in exp.a], [])
     elif opname == "helper":
         return []
-    elif opname in ["obj", "num", "fnum"]:
+    elif opname in ["obj", "num", "fnum", "sizeof", "str", "empty"]:
         return []
     elif opname == "cast":
         return [exp.x] + get_inner_entities_list_expr(exp.x)
@@ -82,3 +82,5 @@ def get_inner_entities_list_expr(exp):
         return [exp.x] + get_inner_entities_list_expr(exp.x)
     elif opname in Nodes.TWO_OP_N:
         return [exp.x, exp.y] + get_inner_entities_list_expr(exp.x) + get_inner_entities_list_expr(exp.y)
+    elif:
+        raise Exception('Got unexpected opname {}'.format(opname))
