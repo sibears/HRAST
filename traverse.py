@@ -75,10 +75,11 @@ class FuncProcessor(object):
             print "[-] Not an case!"
             return
         vals = []
-        for i in cas.values:
-            vals.append(i)
-        if not vals:
-            vals = "default"
+        """TODO: When decompiling 32bit binaries values is not iterable"""
+        #for i in cas.values:
+        #    vals.append(i)
+        #if not vals:
+        #    vals = "default"
         if self.DEBUG:
             print "{}[+]Got case {} num {}".format(" " * (shift * TAB_SPACES), cas.opname, str(vals))
         fields = self.process_inst_and_get_next(cas, shift)
