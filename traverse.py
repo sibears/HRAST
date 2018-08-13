@@ -123,7 +123,7 @@ class FuncProcessor(object):
                         return
             else:
                 if self.pattern.check(node):
-                    print "[+] Found unary pattern!"
+                    print "[+] Found pattern!"
                     self.pattern.set_node(node)
                     if self.pattern.replace_if_need() == True:
                         return
