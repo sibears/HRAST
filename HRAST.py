@@ -54,7 +54,7 @@ LEV = 0
 NAME = 'log'
 
 used_pats = []
-DEBUG = True
+DEBUG = False
 
 
 def reLOAD():
