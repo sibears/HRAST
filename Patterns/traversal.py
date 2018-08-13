@@ -82,5 +82,5 @@ def get_inner_entities_list_expr(exp):
         return [exp.x] + get_inner_entities_list_expr(exp.x)
     elif opname in Nodes.TWO_OP_N:
         return [exp.x, exp.y] + get_inner_entities_list_expr(exp.x) + get_inner_entities_list_expr(exp.y)
-    elif:
+    else:
         raise Exception('Got unexpected opname {}'.format(opname))
