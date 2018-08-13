@@ -83,3 +83,7 @@ def make_comment(fcn, obj, comm):
     tl.itp = ida_hexrays.ITP_SEMI
     fcn.set_user_cmt(tl, comm)
     fcn.save_user_cmts()
+
+
+def get_var_offset(fcn, var_idx):
+    return fcn.lvars[var_idx].location.get_ea()

@@ -207,3 +207,17 @@ def test_xx(idx, ctx):
     return True
 
 PATTERNS = [(test_deep, test_xx, False), (test_deep_without_cast, test_xx, False)]
+
+
+str_ass = """Patterns.ExprInst(
+    Patterns.AsgnExpr(Patterns.VarBind('r'),
+                     Patterns.BindExpr('n',Patterns.NumberExpr())
+                     )
+)"""
+
+def xx(inst, ctx):
+    print "{:x}".format(inst.ea)
+    v = ctx.get_var('r')
+    print "Var offset from stack:", get_var_offset(ctx.fcn, v.idx)
+
+PATTERNS = [(str_ass, xx, False)]
