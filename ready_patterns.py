@@ -209,15 +209,37 @@ def test_xx(idx, ctx):
 PATTERNS = [(test_deep, test_xx, False), (test_deep_without_cast, test_xx, False)]
 
 
-str_ass = """Patterns.ExprInst(
+str_asgn = """Patterns.ExprInst(
     Patterns.AsgnExpr(Patterns.VarBind('r'),
                      Patterns.BindExpr('n',Patterns.NumberExpr())
                      )
 )"""
+GLOBAL = {}
+MAX = 0
 
 def xx(inst, ctx):
+    global MAX
+    global GLOBAL
     print "{:x}".format(inst.ea)
     v = ctx.get_var('r')
-    print "Var offset from stack:", get_var_offset(ctx.fcn, v.idx)
+    n = ctx.get_expr('n')[0]
+    val = n.n._value
+    v_o = get_var_offset(ctx.fcn, v.idx)
+    print "Var offset from stack:", v_o
+    print val
+    if v_o > MAX:
+        MAX = v_o
+    if val < 256:
+        if val == 0:
+            GLOBAL[v_o] = "\\x00"
+        else:
+            GLOBAL[v_o] = chr(val)
+    ret = ''
+    for i in range(MAX+1):
+        if i not in GLOBAL:
+            ret += '_'
+        else:
 
-PATTERNS = [(str_ass, xx, False)]
+            ret += GLOBAL[i]
+    print ret
+PATTERNS = [(str_asgn, xx, False)]
