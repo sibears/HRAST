@@ -216,10 +216,18 @@ str_asgn = """Patterns.ExprInst(
 )"""
 GLOBAL = {}
 MAX = 0
+LAST_FCN_EA = None
 
 def xx(inst, ctx):
     global MAX
     global GLOBAL
+    global LAST_FCN_EA
+    if LAST_FCN_EA is None:
+        LAST_FCN_EA = ctx.fcn.entry_ea
+    if LAST_FCN_EA != ctx.fcn.entry_ea:
+        GLOBAL = {}
+        MAX = 0
+        LAST_FCN_EA = ctx.fcn.entry_ea
     print "{:x}".format(inst.ea)
     v = ctx.get_var('r')
     n = ctx.get_expr('n')[0]

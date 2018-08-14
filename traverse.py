@@ -153,7 +153,7 @@ class FuncProcessor(object):
     ]
 
     ONE_OP = [
-        'preinc', 'predec', 'lnot', 'ref', 'bnot', 'postinc', 'postdec', 'neg', 'fneg', 'str' 
+        'preinc', 'predec', 'lnot', 'ref', 'bnot', 'postinc', 'postdec', 'neg', 'fneg'
     ]
 
     def process_expr(self, exp, shift):
@@ -190,6 +190,9 @@ class FuncProcessor(object):
         elif opname == "helper":
             if self.DEBUG:
                 print "{}[+] Helper: {}".format(" " * ((shift + 1) * TAB_SPACES), exp.helper)
+        elif opname == "str":
+            if self.DEBUG:
+                print "{}[+] String: {}".format(" " * ((shift + 1) * TAB_SPACES), exp.string)
         elif opname == "obj":
             if self.DEBUG:
                 print "{}[+] EA: {:x}".format(" " * ((shift + 1) * TAB_SPACES), exp.obj_ea)
