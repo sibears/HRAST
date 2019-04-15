@@ -3,6 +3,7 @@
 from ast_helper import *
 import idaapi
 import ida_name
+import ida_bytes
 
 strlen_global = """Patterns.ChainPattern([
     Patterns.ExprInst(Patterns.AsgnExpr(Patterns.VarBind("t1"), Patterns.ObjBind("strlenarg"))),
@@ -91,7 +92,7 @@ def getProc_addr(idx, ctx):
 # by
 #   struct_XXX.sub_XXXX = (anytype)sub_XXXX
 #   struct_XXX.sub_YYYY = (anytype)sub_YYYY
-# 
+# where struct_XXX - global variable
 # So, it's just renames structure fields
 #========================================
 
@@ -231,10 +232,10 @@ def xx(inst, ctx):
     print "{:x}".format(inst.ea)
     v = ctx.get_var('r')
     n = ctx.get_expr('n')[0]
-    val = n.n._value
+    val = n.n._value & 0xff
     v_o = get_var_offset(ctx.fcn, v.idx)
     print "Var offset from stack:", v_o
-    print val
+    print val 
     if v_o > MAX:
         MAX = v_o
     if val < 256:
@@ -251,3 +252,94 @@ def xx(inst, ctx):
             ret += GLOBAL[i]
     print ret
 PATTERNS = [(str_asgn, xx, False)]
+
+
+#Example for inplace simplifications cpp operators (see pics on readme)
+#Not really tested yet - I did it for concrete binary, so it may not work from the box for you
+operator_replacing = """Patterns.ExprInst(
+        Patterns.AsgnExpr(Patterns.VarBind('res'),
+        Patterns.CallExprExactArgs(
+                Patterns.ObjBind("function"),
+                [Patterns.BindExpr("arg1", Patterns.AnyPattern()), Patterns.BindExpr("arg2", Patterns.AnyPattern())]
+        )
+    )
+)"""
+
+def get_string_repr(obj, ctx):
+    if obj.opname == "cast":
+        obj = obj.x
+    else:
+        pass
+    if obj.opname == "obj":
+        if obj.type.dstr() == "char *":
+            return repr(ida_bytes.get_strlit_contents(obj.obj_ea, 256, -1))
+        else:
+            name = ida_name.get_name(obj.obj_ea).split("@@")[0]
+            print name
+            if name[0] == ".":
+                name = name[1:]
+            if "endl" in name:
+                return "std::endl"
+            return ida_name.demangle_name(name, 0)
+    elif obj.opname == "ref":
+        return "&"+get_string_repr(obj.x, ctx)
+    elif obj.opname == "var":
+        return ctx.get_var_name(obj.v.idx)
+    else:
+        print obj.opname
+    return ""
+    
+
+def react_operator(idx, ctx):
+    print '%x' % (idx.ea)
+    fcn_object = ctx.get_obj("function")
+    """next line was working on ELF"""
+    #demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr)[1:], 0)
+    """next line was working on MACH-O"""
+    demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr), 0)
+    
+    print demangled
+    if "operator<<" in demangled:
+        arg2 = ctx.get_expr('arg2')[0]
+        arg1 = ctx.get_expr('arg1')[0]
+        arg1_repr = get_string_repr(arg1, ctx)
+        arg2_repr =  get_string_repr(arg2, ctx)
+        var = ctx.get_var("res")
+        #varname = ctx.get_var_name(var.idx)
+        varexp = make_var_expr(var.idx, var.typ, var.mba)
+        helper = make_helper_expr("{} << {}".format(arg1_repr, arg2_repr))
+        insn = make_cexpr_insn(idx.ea, make_asgn_expr(varexp, helper))
+        idx.cleanup()
+        idaapi.qswap(idx, insn)
+        # del original inst because we swapped them on previous line
+        del insn
+
+
+operator_replacing2 = """Patterns.ExprInst(
+        Patterns.CallExpr(
+                Patterns.ObjBind("function"),
+                [Patterns.BindExpr("arg1", Patterns.AnyPattern()), Patterns.BindExpr("arg2", Patterns.AnyPattern())]
+        )
+)"""
+
+def react_operator2(idx, ctx):
+    print '%x' % (idx.ea)
+    fcn_object = ctx.get_obj("function")
+    """next line was working on ELF"""
+    #demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr)[1:], 0)
+    """next line was working on MACH-O"""
+    demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr), 0)
+    print demangled
+    if "operator<<" in demangled:
+        arg2 = ctx.get_expr('arg2')[0]
+        arg1 = ctx.get_expr('arg1')[0]
+        arg1_repr = get_string_repr(arg1, ctx)
+        arg2_repr =  get_string_repr(arg2, ctx)
+
+        insn = make_helper_insn(idx.ea, "{} << {}".format(arg1_repr, arg2_repr))
+        idx.cleanup()
+        idaapi.qswap(idx, insn)
+        # del original inst because we swapped them on previous line
+        del insn
+
+PATTERNS = [(operator_replacing, react_operator, False), (operator_replacing2, react_operator2, False)]

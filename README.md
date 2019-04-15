@@ -33,5 +33,13 @@ Scripts are not fully tested (e.g. it can fail on some ctree elements), but you 
 **After**
 ![after screen](pics/after.png)
 
+cpp operator << replace:
+
+**Before**
+![before screen](pics/cpp_before.png)
+
+**After**
+![after screen](pics/cpp_after.png)
+
 ### License:
 Released under [The MIT License](https://github.com/sibears/HRAST/blob/master/LICENSE)

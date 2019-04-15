@@ -153,6 +153,27 @@ class CallExpr(p.Pattern):
             return res
         return False
     
+class CallExprExactArgs(p.Pattern):
+
+    def __init__(self, fcn, args):
+        super(CallExprExactArgs, self).__init__()
+        self.fcn = fcn
+        self.args = args
+
+    def check(self, expr, ctx):
+        if expr.opname == "call" and self.fcn.check(expr.x, ctx):
+            res = True
+            ln = len(self.args)
+            idx = 0
+            for i in expr.a:
+                if idx >= ln:
+                    return False
+                res = res and self.args[idx].check(i, ctx)
+                idx += 1
+            if idx == ln:
+                return res
+        return False
+
 
 class ObjConcrete(p.Pattern):
 
@@ -187,6 +208,19 @@ class NumberExpr(p.UnaryExpr):
             return super(NumberExpr, self).check(expr.n, ctx)
         return False
 
+
+class HelperExpr(p.Pattern):
+
+    def __init__(self, name = None):
+        super(HelperExpr, self).__init__()
+        self.name = name
+    
+    def check(self, expr, ctx):
+        if expr.opname == "helper":
+            if self.name is not None:
+                return expr.helper == self.name
+            return True
+        return False
 
 class CastExpr(p.Pattern):
 

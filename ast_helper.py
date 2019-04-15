@@ -85,5 +85,8 @@ def make_comment(fcn, obj, comm):
     fcn.save_user_cmts()
 
 
+def extract_number(expr):
+    return expr.n._value
+
 def get_var_offset(fcn, var_idx):
     return fcn.lvars[var_idx].location.get_ea()
