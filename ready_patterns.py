@@ -2,6 +2,7 @@
 
 
 from ast_helper import *
+import idc
 import idaapi
 import ida_name
 import ida_bytes
@@ -100,7 +101,7 @@ get_proc_addr = """Patterns.ExprInst(
         )
     )
 )
-""".format(0x3)  # 0x3 - replace by addr of getProcAddr
+""".format(idaapi.get_name_ea(0, 'GetProcAddress'))  # 0x3 - replace by addr of getProcAddr
 
 
 class GetProcAddr(object):
@@ -115,7 +116,8 @@ class GetProcAddr(object):
         obj = ctx.get_obj("fcnPtr")
         print "%x" % obj.addr
         name = ctx.get_obj("fcnName")
-        name_str = ida_bytes.get_strlit_contents(name.addr, -1, -1)
+        print name, name.addr
+        name_str = idc.GetString(name.addr, -1, idc.STRTYPE_C)
         ida_name.set_name(obj.addr, name_str)
         return False
 
@@ -413,7 +415,7 @@ class ReactOperator2(object):
         """next line was working on MACH-O"""
         # demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr), 0)
         print demangled
-        if "operator<<" in demangled:
+        if not (demangled is None) and  "operator<<" in demangled:
             arg2 = ctx.get_expr('arg2')[0]
             arg1 = ctx.get_expr('arg1')[0]
             arg1_repr = get_string_repr(arg1, ctx)
@@ -425,4 +427,5 @@ class ReactOperator2(object):
             # del original inst because we swapped them on previous line
             del insn
 
-PATTERNS = [ReactOperator(operator_replacing, False), ReactOperator2(operator_replacing2, False)]
+# PATTERNS = [ReactOperator(operator_replacing, False), ReactOperator2(operator_replacing2, False)]
+PATTERNS = [GetProcAddr(get_proc_addr, False)]
