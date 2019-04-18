@@ -1,9 +1,30 @@
 # -*- coding: utf-8 -*-
 
+
 from ast_helper import *
 import idaapi
 import ida_name
 import ida_bytes
+
+
+'''
+Define your patterns as classes like this
+
+class HrastPattern(object):
+
+    def __init__(self, pattern, is_chain):
+        self.pattern  = pattern
+        self.is_chain = is_chain
+
+
+    def process(self, idx, ctx):
+        pass
+
+
+    def finalize(self, *args, **kwargs):
+        pass
+
+'''
 
 strlen_global = """Patterns.ChainPattern([
     Patterns.ExprInst(Patterns.AsgnExpr(Patterns.VarBind("t1"), Patterns.ObjBind("strlenarg"))),
@@ -28,26 +49,34 @@ strlen_global = """Patterns.ChainPattern([
     Patterns.ExprInst(Patterns.AsgnExpr(Patterns.VarBind("res"), Patterns.AnyPattern()))
 ])"""
 
-def replacer_strlen_global(idx, ctx):
-    var = ctx.get_var("res")
-    varname = ctx.get_var_name(var.idx)
-    obj = ctx.get_obj("strlenarg")
 
-    varexp = make_var_expr(var.idx, var.typ, var.mba)
-    arg1 = make_obj_expr(obj.addr, obj.type, arg=True)
-    arglist = ida_hexrays.carglist_t()
-    arglist.push_back(arg1)
-    val = ida_hexrays.call_helper(ida_hexrays.dummy_ptrtype(4, False), arglist, "strlen_inlined")
-    insn = make_cexpr_insn(idx.ea, make_asgn_expr(varexp, val))
+class StrlenReplacer(object):
 
-    idx.cleanup()
-    idaapi.qswap(idx, insn)
-    # del original inst because we swapped them on previous line
-    del insn
-    return True
+    def __init__(self, pattern, is_chain):
+        self.pattern  = pattern
+        self.is_chain = is_chain
 
-# Third arg - is chain
-PATTERNS = [(strlen_global, replacer_strlen_global, True)]
+    def process(self, idx, ctx):
+        var = ctx.get_var("res")
+        varname = ctx.get_var_name(var.idx)
+        obj = ctx.get_obj("strlenarg")
+
+        varexp = make_var_expr(var.idx, var.typ, var.mba)
+        arg1 = make_obj_expr(obj.addr, obj.type, arg=True)
+        arglist = ida_hexrays.carglist_t()
+        arglist.push_back(arg1)
+        val = ida_hexrays.call_helper(ida_hexrays.dummy_ptrtype(4, False), arglist, "strlen_inlined")
+        insn = make_cexpr_insn(idx.ea, make_asgn_expr(varexp, val))
+
+        idx.cleanup()
+        idaapi.qswap(idx, insn)
+        # del original inst because we swapped them on previous line
+        del insn
+        return True
+
+
+PATTERNS = [StrlenReplacer(strlen_global, True)]
+
 
 #=======================================
 # This pattern is works with following case
@@ -73,16 +102,24 @@ get_proc_addr = """Patterns.ExprInst(
 )
 """.format(0x3)  # 0x3 - replace by addr of getProcAddr
 
-def getProc_addr(idx, ctx):
-    import ida_bytes
-    obj = ctx.get_obj("fcnPtr")
-    print "%x" % obj.addr
-    name = ctx.get_obj("fcnName")
-    name_str = ida_bytes.get_strlit_contents(name.addr, -1, -1)
-    ida_name.set_name(obj.addr, name_str)
-    return False
 
-#PATTERNS = [(get_proc_addr, getProc_addr, False)]
+class GetProcAddr(object):
+
+    def __init__(self, pattern, is_chain):
+        self.pattern  = pattern
+        self.is_chain = is_chain
+
+
+    def process(self, idx, ctx):
+        import ida_bytes
+        obj = ctx.get_obj("fcnPtr")
+        print "%x" % obj.addr
+        name = ctx.get_obj("fcnName")
+        name_str = ida_bytes.get_strlit_contents(name.addr, -1, -1)
+        ida_name.set_name(obj.addr, name_str)
+        return False
+
+#PATTERNS = [GetProcAddr(get_proc_addr, False)]
 
 
 #========================================
@@ -106,25 +143,33 @@ Patterns.ExprInst(
     )
 )"""
 
-def rename_struct_field_as_func_name(idx, ctx):
-    import idc
-    import ida_bytes
-    obj = ctx.get_memref('stroff')
-    print "%x" % obj.ea
-    ti = idaapi.opinfo_t()
-    f = idc.GetFlags(obj.ea)
-    if idaapi.get_opinfo(obj.ea, 0, f, ti):
-        print("tid=%08x - %s" % (ti.tid, idaapi.get_struc_name(ti.tid)))
-    print "Offset: {}".format(obj.offset)
-    import ida_struct
-    obj2 = ctx.get_obj('fcn')
-    print "%x" % obj2.addr
-    name_str = ida_name.get_name(obj2.addr)
-    print "Name {}".format(name_str)
-    ida_struct.set_member_name(ida_struct.get_struc(ti.tid), obj.offset, name_str)
-    return False
+class RenameStructFieldAsFuncName(object):
 
-# PATTERNS = [(global_struct_fields_sub, rename_struct_field_as_func_name, False)]
+    def __init__(self, pattern, is_chain):
+        self.pattern  = pattern
+        self.is_chain = is_chain
+
+
+    def process(self, idx, ctx):
+        import idc
+        import ida_bytes
+        obj = ctx.get_memref('stroff')
+        print "%x" % obj.ea
+        ti = idaapi.opinfo_t()
+        f = idc.GetFlags(obj.ea)
+        if idaapi.get_opinfo(obj.ea, 0, f, ti):
+            print("tid=%08x - %s" % (ti.tid, idaapi.get_struc_name(ti.tid)))
+        print "Offset: {}".format(obj.offset)
+        import ida_struct
+        obj2 = ctx.get_obj('fcn')
+        print "%x" % obj2.addr
+        name_str = ida_name.get_name(obj2.addr)
+        print "Name {}".format(name_str)
+        ida_struct.set_member_name(ida_struct.get_struc(ti.tid), obj.offset, name_str)
+        return False
+
+# PATTERNS = [RenameStructFieldAsFuncName(global_struct_fields_sub, False)]
+
 
 
 #==============================
@@ -136,12 +181,22 @@ def rename_struct_field_as_func_name(idx, ctx):
 
 test_bind_expr = """Patterns.IfInst(Patterns.BindExpr('if_cond', Patterns.AnyPattern()), Patterns.AnyPattern())"""
 
-def test_bind(idx, ctx):
-    exprs = ctx.get_expr('if_cond')
-    for i in exprs:
-        print i
-    return False
-#PATTERNS = [(test_bind_expr, test_bind, False)]
+class TestBind(object):
+
+    def __init__(self, pattern, is_chain):
+        self.pattern  = pattern
+        self.is_chain = is_chain
+
+
+    def process(self, idx, ctx):
+        exprs = ctx.get_expr('if_cond')
+        for i in exprs:
+            print i
+        return False
+
+#PATTERNS = [TestBind(test_bind_expr, False)]
+
+
 
 #==============================================================
 # Dummy example for switching vptr union based on variable type
@@ -189,25 +244,33 @@ test_deep_without_cast = """Patterns.ExprInst(
 )
 """
 
-def test_xx(idx, ctx):
-    import ida_typeinf
-    uni = ctx.get_expr('union_type')
-    var = ctx.get_var('v1')
-    tname =  var.typ.dstr().split(' ')[0]
-    tinfo = idaapi.tinfo_t()
-    if tname == 'class1':
-        idaapi.parse_decl2(idaapi.cvar.idati, 'vptr1_1 *;', tinfo, idaapi.PT_TYP)
-        uni[0].type = tinfo
-        uni[0].m = 0
-    elif tname == "class2":
-        idaapi.parse_decl2(idaapi.cvar.idati, 'struc_5 *;', tinfo, idaapi.PT_TYP)
-        uni[0].type = tinfo
-        uni[0].m = 1
-    else:
-        return False
-    return True
+class TestXX(object):
 
-PATTERNS = [(test_deep, test_xx, False), (test_deep_without_cast, test_xx, False)]
+    def __init__(self, pattern, is_chain):
+        self.pattern  = pattern
+        self.is_chain = is_chain
+
+
+    def process(self, idx, ctx):
+        import ida_typeinf
+        uni = ctx.get_expr('union_type')
+        var = ctx.get_var('v1')
+        tname =  var.typ.dstr().split(' ')[0]
+        tinfo = idaapi.tinfo_t()
+        if tname == 'class1':
+            idaapi.parse_decl2(idaapi.cvar.idati, 'vptr1_1 *;', tinfo, idaapi.PT_TYP)
+            uni[0].type = tinfo
+            uni[0].m = 0
+        elif tname == "class2":
+            idaapi.parse_decl2(idaapi.cvar.idati, 'struc_5 *;', tinfo, idaapi.PT_TYP)
+            uni[0].type = tinfo
+            uni[0].m = 1
+        else:
+            return False
+        return True
+
+PATTERNS = [TestXX(test_deep, False), TestXX(test_deep_without_cast, False)]
+
 
 
 str_asgn = """Patterns.ExprInst(
@@ -215,43 +278,49 @@ str_asgn = """Patterns.ExprInst(
                      Patterns.BindExpr('n',Patterns.NumberExpr())
                      )
 )"""
-GLOBAL = {}
-MAX = 0
-LAST_FCN_EA = None
 
-def xx(inst, ctx):
-    global MAX
-    global GLOBAL
-    global LAST_FCN_EA
-    if LAST_FCN_EA is None:
-        LAST_FCN_EA = ctx.fcn.entry_ea
-    if LAST_FCN_EA != ctx.fcn.entry_ea:
-        GLOBAL = {}
-        MAX = 0
-        LAST_FCN_EA = ctx.fcn.entry_ea
-    print "{:x}".format(inst.ea)
-    v = ctx.get_var('r')
-    n = ctx.get_expr('n')[0]
-    val = n.n._value & 0xff
-    v_o = get_var_offset(ctx.fcn, v.idx)
-    print "Var offset from stack:", v_o
-    print val 
-    if v_o > MAX:
-        MAX = v_o
-    if val < 256:
-        if val == 0:
-            GLOBAL[v_o] = "\\x00"
-        else:
-            GLOBAL[v_o] = chr(val)
-    ret = ''
-    for i in range(MAX+1):
-        if i not in GLOBAL:
-            ret += '_'
-        else:
+class XX(object):
 
-            ret += GLOBAL[i]
-    print ret
-PATTERNS = [(str_asgn, xx, False)]
+    def __init__(self, pattern, is_chain):
+        self.pattern  = pattern
+        self.is_chain = is_chain
+
+        self.GLOBAL = {}
+        self.MAX = 0
+        self.LAST_FCN_EA = None
+
+    def process(self, idx, ctx):
+        if self.LAST_FCN_EA is None:
+            self.LAST_FCN_EA = ctx.fcn.entry_ea
+        if self.LAST_FCN_EA != ctx.fcn.entry_ea:
+            self.GLOBAL = {}
+            self.MAX = 0
+            self.LAST_FCN_EA = ctx.fcn.entry_ea
+        print "{:x}".format(inst.ea)
+        v = ctx.get_var('r')
+        n = ctx.get_expr('n')[0]
+        val = n.n._value & 0xff
+        v_o = get_var_offset(ctx.fcn, v.idx)
+        print "Var offset from stack:", v_o
+        print val 
+        if v_o > self.MAX:
+            self.MAX = v_o
+        if val < 256:
+            if val == 0:
+                self.GLOBAL[v_o] = "\\x00"
+            else:
+                self.GLOBAL[v_o] = chr(val)
+        ret = ''
+        for i in range(self.MAX+1):
+            if i not in self.GLOBAL:
+                ret += '_'
+            else:
+
+                ret += self.GLOBAL[i]
+        print ret
+
+PATTERNS = [XX(str_asgn, False)]
+
 
 
 #Example for inplace simplifications cpp operators (see pics on readme)
@@ -265,8 +334,9 @@ operator_replacing = """Patterns.ExprInst(
     )
 )"""
 
+# TODO: mb better is to incapsulate this function in classes
 def get_string_repr(obj, ctx):
-    if obj.opname == "cast":
+   if obj.opname == "cast":
         obj = obj.x
     else:
         pass
@@ -288,31 +358,38 @@ def get_string_repr(obj, ctx):
     else:
         print obj.opname
     return ""
-    
 
-def react_operator(idx, ctx):
-    print '%x' % (idx.ea)
-    fcn_object = ctx.get_obj("function")
-    """next line was working on ELF"""
-    #demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr)[1:], 0)
-    """next line was working on MACH-O"""
-    demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr), 0)
-    
-    print demangled
-    if "operator<<" in demangled:
-        arg2 = ctx.get_expr('arg2')[0]
-        arg1 = ctx.get_expr('arg1')[0]
-        arg1_repr = get_string_repr(arg1, ctx)
-        arg2_repr =  get_string_repr(arg2, ctx)
-        var = ctx.get_var("res")
-        #varname = ctx.get_var_name(var.idx)
-        varexp = make_var_expr(var.idx, var.typ, var.mba)
-        helper = make_helper_expr("{} << {}".format(arg1_repr, arg2_repr))
-        insn = make_cexpr_insn(idx.ea, make_asgn_expr(varexp, helper))
-        idx.cleanup()
-        idaapi.qswap(idx, insn)
-        # del original inst because we swapped them on previous line
-        del insn
+
+class ReactOperator(object):
+
+    def __init__(self, pattern, is_chain):
+        self.pattern  = pattern
+        self.is_chain = is_chain
+
+    def process(self, idx, ctx):
+        print '%x' % (idx.ea)
+        fcn_object = ctx.get_obj("function")
+        """next line was working on ELF"""
+        demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr)[1:], 0)
+        """next line was working on MACH-O"""
+        # demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr), 0)
+
+        print demangled
+        if "operator<<" in demangled:
+            arg2 = ctx.get_expr('arg2')[0]
+            arg1 = ctx.get_expr('arg1')[0]
+            arg1_repr = get_string_repr(arg1, ctx)
+            arg2_repr =  get_string_repr(arg2, ctx)
+            var = ctx.get_var("res")
+            #varname = ctx.get_var_name(var.idx)
+            varexp = make_var_expr(var.idx, var.typ, var.mba)
+            helper = make_helper_expr("{} << {}".format(arg1_repr, arg2_repr))
+            insn = make_cexpr_insn(idx.ea, make_asgn_expr(varexp, helper))
+            idx.cleanup()
+            idaapi.qswap(idx, insn)
+            # del original inst because we swapped them on previous line
+            del insn
+
 
 
 operator_replacing2 = """Patterns.ExprInst(
@@ -322,24 +399,30 @@ operator_replacing2 = """Patterns.ExprInst(
         )
 )"""
 
-def react_operator2(idx, ctx):
-    print '%x' % (idx.ea)
-    fcn_object = ctx.get_obj("function")
-    """next line was working on ELF"""
-    #demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr)[1:], 0)
-    """next line was working on MACH-O"""
-    demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr), 0)
-    print demangled
-    if "operator<<" in demangled:
-        arg2 = ctx.get_expr('arg2')[0]
-        arg1 = ctx.get_expr('arg1')[0]
-        arg1_repr = get_string_repr(arg1, ctx)
-        arg2_repr =  get_string_repr(arg2, ctx)
+class ReactOperator2(object):
 
-        insn = make_helper_insn(idx.ea, "{} << {}".format(arg1_repr, arg2_repr))
-        idx.cleanup()
-        idaapi.qswap(idx, insn)
-        # del original inst because we swapped them on previous line
-        del insn
+    def __init__(self, pattern, is_chain):
+        self.pattern  = pattern
+        self.is_chain = is_chain
 
-PATTERNS = [(operator_replacing, react_operator, False), (operator_replacing2, react_operator2, False)]
+    def process(self, idx, ctx):
+        print '%x' % (idx.ea)
+        fcn_object = ctx.get_obj("function")
+        """next line was working on ELF"""
+        #demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr)[1:], 0)
+        """next line was working on MACH-O"""
+        demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr), 0)
+        print demangled
+        if "operator<<" in demangled:
+            arg2 = ctx.get_expr('arg2')[0]
+            arg1 = ctx.get_expr('arg1')[0]
+            arg1_repr = get_string_repr(arg1, ctx)
+            arg2_repr =  get_string_repr(arg2, ctx)
+
+            insn = make_helper_insn(idx.ea, "{} << {}".format(arg1_repr, arg2_repr))
+            idx.cleanup()
+            idaapi.qswap(idx, insn)
+            # del original inst because we swapped them on previous line
+            del insn
+
+PATTERNS = [ReactOperator(operator_replacing, False), ReactOperator2(operator_replacing2, False)]

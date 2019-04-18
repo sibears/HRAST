@@ -63,8 +63,8 @@ def reLOAD():
     reload(ready_patterns)
     used_pats = []
     for i in ready_patterns.PATTERNS:
-        print i[0]
-        used_pats.append((eval(i[0], globals(), locals()), i[1], i[2]))
+        print i.pattern
+        used_pats.append((eval(i.pattern, globals(), locals()), i.process, i.is_chain))
 
 
 def unLOAD():
