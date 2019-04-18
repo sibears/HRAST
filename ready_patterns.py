@@ -336,7 +336,7 @@ operator_replacing = """Patterns.ExprInst(
 
 # TODO: mb better is to incapsulate this function in classes
 def get_string_repr(obj, ctx):
-   if obj.opname == "cast":
+    if obj.opname == "cast":
         obj = obj.x
     else:
         pass
@@ -409,9 +409,9 @@ class ReactOperator2(object):
         print '%x' % (idx.ea)
         fcn_object = ctx.get_obj("function")
         """next line was working on ELF"""
-        #demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr)[1:], 0)
+        demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr)[1:], 0)
         """next line was working on MACH-O"""
-        demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr), 0)
+        # demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr), 0)
         print demangled
         if "operator<<" in demangled:
             arg2 = ctx.get_expr('arg2')[0]
