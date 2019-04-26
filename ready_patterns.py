@@ -285,6 +285,7 @@ def get_string_repr(obj, ctx):
         return "&"+get_string_repr(obj.x, ctx)
     elif obj.opname == "var":
         return ctx.get_var_name(obj.v.idx)
+    # elif
     else:
         print obj.opname
     return ""
@@ -294,9 +295,9 @@ def react_operator(idx, ctx):
     print '%x' % (idx.ea)
     fcn_object = ctx.get_obj("function")
     """next line was working on ELF"""
-    #demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr)[1:], 0)
+    demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr)[1:], 0)
     """next line was working on MACH-O"""
-    demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr), 0)
+    #demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr), 0)
     
     print demangled
     if "operator<<" in demangled:
@@ -307,7 +308,10 @@ def react_operator(idx, ctx):
         var = ctx.get_var("res")
         #varname = ctx.get_var_name(var.idx)
         varexp = make_var_expr(var.idx, var.typ, var.mba)
-        helper = make_helper_expr("{} << {}".format(arg1_repr, arg2_repr))
+        #varexp = make_var_expr(var2.idx, var2.typ, var2.mba, arg=True)
+        arglist = ida_hexrays.carglist_t()
+        arglist.push_back(arg2)
+        helper = ida_hexrays.call_helper(ida_hexrays.dummy_ptrtype(4, False), arglist, "{} << ".format(arg1_repr))
         insn = make_cexpr_insn(idx.ea, make_asgn_expr(varexp, helper))
         idx.cleanup()
         idaapi.qswap(idx, insn)
@@ -326,20 +330,74 @@ def react_operator2(idx, ctx):
     print '%x' % (idx.ea)
     fcn_object = ctx.get_obj("function")
     """next line was working on ELF"""
-    #demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr)[1:], 0)
+    demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr)[1:], 0)
     """next line was working on MACH-O"""
-    demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr), 0)
+    #demangled = ida_name.demangle_name(ida_name.get_name(fcn_object.addr), 0)
     print demangled
     if "operator<<" in demangled:
-        arg2 = ctx.get_expr('arg2')[0]
         arg1 = ctx.get_expr('arg1')[0]
         arg1_repr = get_string_repr(arg1, ctx)
-        arg2_repr =  get_string_repr(arg2, ctx)
-
-        insn = make_helper_insn(idx.ea, "{} << {}".format(arg1_repr, arg2_repr))
+        arg2 = ctx.get_expr('arg2')[0]
+        #varexp = make_var_expr(var2.idx, var2.typ, var2.mba, arg=True)
+        arglist = ida_hexrays.carglist_t()
+        arglist.push_back(arg2)
+        val = ida_hexrays.call_helper(ida_hexrays.dummy_ptrtype(4, False), arglist, "{} << ".format(arg1_repr))
+        insn = make_cexpr_insn(idx.ea, val)
         idx.cleanup()
         idaapi.qswap(idx, insn)
-        # del original inst because we swapped them on previous line
         del insn
 
 PATTERNS = [(operator_replacing, react_operator, False), (operator_replacing2, react_operator2, False)]
+
+
+string_deleter = """Patterns.IfInst(
+                        Patterns.UgeExpr(
+                            Patterns.VarBind('len'),
+                            Patterns.NumberExpr(Patterns.NumberConcrete(0x10))
+                        ),
+                        Patterns.BlockInst([
+                            Patterns.ExprInst(
+                                Patterns.AsgnExpr(
+                                    Patterns.AnyPattern(),
+                                    Patterns.VarBind('ptr')
+                                )
+                            ),
+                            Patterns.IfInst(
+                                Patterns.UgeExpr(
+                                    Patterns.AddExpr(
+                                        Patterns.VarBind('len'),
+                                        Patterns.NumberExpr(Patterns.NumberConcrete(1))
+                                    ),
+                                    Patterns.NumberExpr(Patterns.NumberConcrete(0x1000)) 
+                                ),
+                                Patterns.AnyPattern()
+                            ),
+                            Patterns.ExprInst(
+                                Patterns.CallExpr(
+                                    Patterns.ObjConcrete(0x{:x}),
+                                    [Patterns.AnyPattern()]
+                                )
+                            )
+                        ], False)
+)""".format(ida_name.get_name_ea(0, "free_0"))
+
+def handle_string_destr(idx, ctx):
+    print '%x' % (idx.ea)
+    var = ctx.get_var('len')
+    var2 = ctx.get_var('ptr')
+    print var
+    off1 = get_var_offset(ctx.fcn, var.idx)
+    off2 = get_var_offset(ctx.fcn, var2.idx)
+    print off1 - off2
+    if off1 - off2 == 20:
+        print "[+] Found string destructor"
+        varexp = make_var_expr(var2.idx, var2.typ, var2.mba, arg=True)
+        arglist = ida_hexrays.carglist_t()
+        arglist.push_back(varexp)
+        val = ida_hexrays.call_helper(ida_hexrays.dummy_ptrtype(4, False), arglist, "std::string::destructor")
+        insn = make_cexpr_insn(idx.ea, val)
+        idx.cleanup()
+        idaapi.qswap(idx, insn)
+        del insn
+
+#PATTERNS = [(string_deleter, handle_string_destr, False)]
