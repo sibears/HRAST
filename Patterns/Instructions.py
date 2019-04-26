@@ -88,6 +88,7 @@ class BlockInst(object):
 
             currpat = self.nodes[pospat]
             pos += 1
+        return flag
 
 
 class SwitchInst(object):
