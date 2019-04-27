@@ -429,3 +429,91 @@ class ReactOperator2(object):
 
 # PATTERNS = [ReactOperator(operator_replacing, False), ReactOperator2(operator_replacing2, False)]
 PATTERNS = [GetProcAddr(get_proc_addr, False)]
+
+for_x = """Patterns.ForInst(
+    Patterns.AsgnExpr(
+        Patterns.VarBind('idx'),
+        Patterns.NumberExpr(Patterns.NumberConcrete(0))
+    ),
+    Patterns.PtrExpr(
+        Patterns.AddExpr(
+            Patterns.RefExpr(
+                Patterns.VarBind('start')
+            ),
+            Patterns.VarBind('idx')
+        )
+    ),
+    Patterns.PreincExpr(Patterns.VarBind('idx')),
+    Patterns.BlockInst([
+        Patterns.ExprInst(
+            Patterns.AsgXorExpr(
+                Patterns.PtrExpr(
+                    Patterns.AddExpr(
+                        Patterns.RefExpr(
+                            Patterns.VarBind('start')
+                        ),
+                        Patterns.VarBind('idx')
+                    )
+                ),
+                Patterns.BindExpr('xor_val', Patterns.NumberExpr())
+            )
+        )
+    ], False)
+)"""
+
+class SXorDeo(object):
+
+    def __init__(self, pattern, pattern2):
+        self.pattern  = pattern
+        self.pattern2 = pattern2
+        self.is_chain = False
+        self.sev_pat = True
+        self.savings = []
+        self.pats = (pattern, self.pat1), (pattern2, self.pat2)
+        self.GLOBAL = {}
+        self.MAX = 0
+        self.LAST_FCN_EA = None
+
+    def pat1(self, idx, ctx):
+        v = ctx.get_var('r')
+        n = ctx.get_expr('n')[0]
+        val = extract_number(n) & 0xff
+        v_o = get_var_offset(ctx.fcn, v.idx)
+        if v_o > self.MAX:
+            self.MAX = v_o
+        if val < 256:
+            if val == 0:
+                self.GLOBAL[v_o] = "\x00"
+            else:
+                self.GLOBAL[v_o] = chr(val)
+        ret = ''
+        for i in range(self.MAX+1):
+            if i not in self.GLOBAL:
+                ret += '_'
+            else:
+                ret += self.GLOBAL[i]
+        #print ret
+
+    def pat2(self, idx, ctx):
+        print '%x' % idx.ea
+        var = ctx.get_expr('xor_val')[0]
+        start_xor = ctx.get_var('start')
+        offs = get_var_offset(ctx.fcn, start_xor.idx)
+        self.xor_const = extract_number(var)
+        print self.xor_const
+        res = ''
+        #print self.GLOBAL
+        cc = ord(self.GLOBAL[offs])
+        while cc != 0:
+            res += chr(cc ^ self.xor_const)
+            offs += 1
+            cc = ord(self.GLOBAL[offs])
+        new_str = res 
+        print res
+        if res[1] == '\x00' and res[3] == '\x00':
+            print res[::2]
+            new_str = res[::2]
+        make_comment(ctx.fcn, idx, new_str)
+
+
+PATTERNS = [SXorDeo(str_asgn, for_x)]
