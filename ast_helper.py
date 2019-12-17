@@ -90,3 +90,48 @@ def extract_number(expr):
 
 def get_var_offset(fcn, var_idx):
     return fcn.lvars[var_idx].location.get_ea()
+
+
+def make_cblock_insn(ea, blk):
+    insn = ida_hexrays.cinsn_t()
+    insn.ea = ea
+    insn.op = ida_hexrays.cit_block
+    insn.cblock = blk
+    return insn
+
+def make_cblk(insts):
+    blk = ida_hexrays.cblock_t()
+    for i in insts:
+        blk.push_back(i)
+    return blk
+
+def make_if(ea, cond, if_clause):
+    insn = ida_hexrays.cinsn_t()
+    insn.ea = ea
+    insn.op = ida_hexrays.cit_if
+    insn.cexpr = cond
+    ifc = ida_hexrays.cif_t()
+    ifc.ithen = if_clause
+    insn.cif = ifc
+    return insn
+
+def make_asgn_var_number(ea, var, number):
+    nexpr = make_number_expr(number)
+    vexpr = make_var_expr(var.idx, var.typ, var.mba)
+    aexpr = make_asgn_expr(vexpr, nexpr)
+    return make_cexpr_insn(ea, aexpr)
+
+def make_memref_expr(vexpr, offset):
+    expr = ida_hexrays.cexpr_t()
+    expr.op = ida_hexrays.cot_memref
+    expr.x = vexpr
+    expr.m = offset
+    expr.type =  ida_hexrays.dummy_ptrtype(4, False)
+    return expr
+
+def make_asgn_refvar_number(ea, var, offset, number):
+    nexpr = make_number_expr(number)
+    vexpr = make_var_expr(var.idx, var.typ, var.mba)
+    rexpr = make_memref_expr(vexpr, offset)
+    aexpr = make_asgn_expr(rexpr, nexpr)
+    return make_cexpr_insn(ea, aexpr)
