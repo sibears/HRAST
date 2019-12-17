@@ -4,6 +4,9 @@ from ast_helper import *
 import idaapi
 import ida_name
 import ida_bytes
+import ida_struct
+import ida_typeinf
+import idc
 
 strlen_global = """Patterns.ChainPattern([
     Patterns.ExprInst(Patterns.AsgnExpr(Patterns.VarBind("t1"), Patterns.ObjBind("strlenarg"))),
@@ -46,9 +49,6 @@ def replacer_strlen_global(idx, ctx):
     del insn
     return True
 
-# Third arg - is chain
-PATTERNS = [(strlen_global, replacer_strlen_global, True)]
-
 #=======================================
 # This pattern is works with following case
 #  dword_XXXX = (anytype)GetProcAddr(<anyArg>, 'funcName1')
@@ -82,7 +82,7 @@ def getProc_addr(idx, ctx):
     ida_name.set_name(obj.addr, name_str)
     return False
 
-#PATTERNS = [(get_proc_addr, getProc_addr, False)]
+
 
 
 #========================================
@@ -124,7 +124,7 @@ def rename_struct_field_as_func_name(idx, ctx):
     ida_struct.set_member_name(ida_struct.get_struc(ti.tid), obj.offset, name_str)
     return False
 
-# PATTERNS = [(global_struct_fields_sub, rename_struct_field_as_func_name, False)]
+
 
 
 #==============================
@@ -141,7 +141,7 @@ def test_bind(idx, ctx):
     for i in exprs:
         print i
     return False
-#PATTERNS = [(test_bind_expr, test_bind, False)]
+
 
 #==============================================================
 # Dummy example for switching vptr union based on variable type
@@ -207,9 +207,6 @@ def test_xx(idx, ctx):
         return False
     return True
 
-PATTERNS = [(test_deep, test_xx, False), (test_deep_without_cast, test_xx, False)]
-
-
 str_asgn = """Patterns.ExprInst(
     Patterns.AsgnExpr(Patterns.VarBind('r'),
                      Patterns.BindExpr('n',Patterns.NumberExpr())
@@ -251,7 +248,7 @@ def xx(inst, ctx):
 
             ret += GLOBAL[i]
     print ret
-PATTERNS = [(str_asgn, xx, False)]
+
 
 
 #Example for inplace simplifications cpp operators (see pics on readme)
@@ -347,7 +344,7 @@ def react_operator2(idx, ctx):
         idaapi.qswap(idx, insn)
         del insn
 
-PATTERNS = [(operator_replacing, react_operator, False), (operator_replacing2, react_operator2, False)]
+
 
 
 string_deleter = """Patterns.IfInst(
@@ -400,4 +397,110 @@ def handle_string_destr(idx, ctx):
         idaapi.qswap(idx, insn)
         del insn
 
+DWORD_STRUCT = """
+Patterns.ExprInst(
+    Patterns.AsgnExpr(
+        Patterns.PtrExpr(
+            Patterns.CastExpr(
+                Patterns.RefExpr(
+                    Patterns.BindExpr(
+                        'struct_part',
+                        Patterns.MemrefExpr(
+                            Patterns.VarBind(
+                                'struct_var'
+                            )
+                        )
+                    )
+                )                            
+            ),
+            4 #PTRSIZE
+        ),
+        Patterns.BindExpr(
+            'values',
+            Patterns.NumberExpr(
+                Patterns.AnyPattern()
+            )
+        )
+    )
+)
+"""
+
+def replace_dword_in_struct(idx, ctx):
+    print '%x' % idx.ea
+    struct_expr = ctx.get_expr('struct_part')[0]
+    var = ctx.get_var("struct_var")
+    values = ctx.get_expr('values')[0]
+    offset = struct_expr.m
+    vals = []
+    N = extract_number(values)
+    typename = struct_expr.x.type.dstr()
+    s_id = ida_struct.get_struc_id(typename)
+    if s_id == idc.BADADDR:
+        return
+    sptr = ida_struct.get_struc(s_id)
+    is_suits = True
+    fields = []
+    inner_offset = 0
+    while inner_offset < 4:
+        memb = ida_struct.get_member(sptr, offset+inner_offset)
+        if memb is None:
+            print "Not enought members!"
+            is_suits = False
+            break
+        size = ida_struct.get_member_size(memb)
+        if inner_offset + size  > 4:
+            print "Size fail!(%d bytes lenft but member size is %d)" % (4 - inner_offset, size)
+            is_suits = False
+            break
+        if size == 1:
+            val = N & 0xff
+            N = N >> 8
+        elif size == 2:
+            val = N & 0xffff
+            N = N >> 16
+        else:
+            print "Unkn size"
+            is_suits = False
+            break
+        fields.append((inner_offset, val))
+        inner_offset += size
+        
+    if is_suits is False:
+        print "Not suitable!"
+        return
+    inslist = []
+    for i in fields:
+        ins = make_asgn_refvar_number(idx.ea, var, offset+i[0], i[1])
+        inslist.append(ins)
+    #########
+    # Not foldable
+    #########    
+    blk = make_cblk(inslist)
+    cblk = make_cblock_insn(idx.ea, blk)
+    idx.cleanup()
+    idaapi.qswap(idx, cblk)
+    del cblk
+    ##########################
+    # Foldable - not working - IDA crashes at exit idk why;[
+    ##########################
+    #fake_cond =  make_helper_expr("fold")
+    #blk = make_cblk(inslist)
+    #cblk = make_cblock_insn(idx.ea, blk)
+    #cif = make_if(idx.ea, fake_cond, cblk)
+    #idx.cleanup()
+    #idaapi.qswap(idx, cif)
+    #del cif
+    return True
+
+
+
+# Third arg - is chain
+#PATTERNS = [(strlen_global, replacer_strlen_global, True)]
+#PATTERNS = [(get_proc_addr, getProc_addr, False)]
+#PATTERNS = [(test_deep, test_xx, False), (test_deep_without_cast, test_xx, False)]
+#PATTERNS = [(global_struct_fields_sub, rename_struct_field_as_func_name, False)]
+#PATTERNS = [(test_bind_expr, test_bind, False)]
+#PATTERNS = [(str_asgn, xx, False)]
+#PATTERNS = [(operator_replacing, react_operator, False), (operator_replacing2, react_operator2, False)]
 #PATTERNS = [(string_deleter, handle_string_destr, False)]
+PATTERNS = [(DWORD_STRUCT, replace_dword_in_struct, False)]

@@ -10,10 +10,8 @@ def make_call_expr(fcnexpr, args):
     expr.a = ida_hexrays.carglist_t()
     return expr
 
-
 def make_helper_insn(ea, name):
     return make_cexpr_insn(ea, make_helper_expr(name))
-
 
 def make_helper_expr(name, typ=False):
     obj = ida_hexrays.cexpr_t()
@@ -24,7 +22,6 @@ def make_helper_expr(name, typ=False):
         obj.type = typ
     return obj
 
-
 def make_number_expr(val):
     expr = ida_hexrays.cexpr_t()
     expr.op = ida_hexrays.cot_num
@@ -32,7 +29,6 @@ def make_number_expr(val):
     expr.n._value = val
     expr.type = ida_hexrays.dummy_ptrtype(4, False)
     return expr
-
 
 def make_obj_expr(ea, type=None, arg=False):
     if arg is False:
@@ -47,7 +43,6 @@ def make_obj_expr(ea, type=None, arg=False):
         expr.type = type
     return expr
 
-
 def make_var_expr(number, type, m, arg=False):
     if arg is False:
         expr = ida_hexrays.cexpr_t()
@@ -60,7 +55,6 @@ def make_var_expr(number, type, m, arg=False):
     expr.v.mba = m
     return expr
 
-
 def make_asgn_expr(left, right):
     expr = ida_hexrays.cexpr_t()
     expr.op = ida_hexrays.cot_asg
@@ -69,12 +63,12 @@ def make_asgn_expr(left, right):
     expr.type = left.type
     return expr
 
-
 def make_cexpr_insn(ea, obj):
     insn = ida_hexrays.cinsn_t()
     insn.ea = ea
     insn.op = ida_hexrays.cit_expr
     insn.cexpr = obj
+    insn.thisown = False
     return insn
 
 def make_comment(fcn, obj, comm):
@@ -84,19 +78,18 @@ def make_comment(fcn, obj, comm):
     fcn.set_user_cmt(tl, comm)
     fcn.save_user_cmts()
 
-
 def extract_number(expr):
     return expr.n._value
 
 def get_var_offset(fcn, var_idx):
     return fcn.lvars[var_idx].location.get_ea()
 
-
 def make_cblock_insn(ea, blk):
     insn = ida_hexrays.cinsn_t()
     insn.ea = ea
     insn.op = ida_hexrays.cit_block
     insn.cblock = blk
+    insn.thisown = False
     return insn
 
 def make_cblk(insts):
@@ -109,10 +102,11 @@ def make_if(ea, cond, if_clause):
     insn = ida_hexrays.cinsn_t()
     insn.ea = ea
     insn.op = ida_hexrays.cit_if
-    insn.cexpr = cond
     ifc = ida_hexrays.cif_t()
+    ifc.expr = cond
     ifc.ithen = if_clause
     insn.cif = ifc
+    insn.thisown = False
     return insn
 
 def make_asgn_var_number(ea, var, number):
