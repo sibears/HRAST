@@ -14,7 +14,7 @@ TWO_OP = [
 
 ONE_OP = [
     ('Preinc', 'preinc'), ('Predec', 'predec'), ('Lnot', 'lnot'),
-    ('Ref', 'ref'), ('Bnot', 'bnot'), ('Postinc', 'postinc'), ('Postdec', 'postdec'), ('Ptr', 'ptr'),
+    ('Ref', 'ref'), ('Bnot', 'bnot'), ('Postinc', 'postinc'), ('Postdec', 'postdec'),
     ('Neg', 'neg'), ('Fneg', 'fneg'), ('Str', 'str')
 ]
 
@@ -24,4 +24,4 @@ TWO_OP_N = ['asg', 'idx', 'sub', 'mul', 'add', 'land', 'lor', 'ult', 'ule', 'ugt
 'fdiv', 'sdiv', 'fmul', 'udiv', 'asgsshr', 'asgshl', 'asgmul', 'asgxor', 'fsub',
  'asgsdiv', 'asgudiv', 'asgumod', 'asgsmod', 'umod', 'fadd']
 
-ONE_OP_N = ['preinc', 'predec', 'lnot', 'ref', 'bnot', 'postinc', 'postdec', 'ptr', 'neg', 'fneg', 'str']
+ONE_OP_N = ['preinc', 'predec', 'lnot', 'ref', 'bnot', 'postinc', 'postdec', 'neg', 'fneg', 'str']

@@ -85,6 +85,20 @@ class MemrefExpr(p.Pattern):
             return self.x.check(expr.x, ctx)
         return False
 
+class PtrExpr(p.Pattern):
+    
+    def __init__(self, x, size = -1):
+        super(PtrExpr, self).__init__()
+        self.x = x
+        self.size = size
+
+    def check(self, expr, ctx):
+        if expr.opname == "ptr":
+            if self.size != -1 and self.size != expr.ptrsize:
+                return False
+            return self.x.check(expr.x, ctx)
+        return False
+
 class MemRefIdxGlobalBind(p.Pattern):
 
     def __init__(self, name):
